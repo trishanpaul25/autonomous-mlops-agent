@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from loaders.base_loader import BaseLoader
+from .base_loader import BaseLoader
 
 
 class ZIPLoader(BaseLoader):

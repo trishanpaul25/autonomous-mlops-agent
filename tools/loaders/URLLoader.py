@@ -1,6 +1,6 @@
 import pandas as pd
 
-from loaders.base_loader import BaseLoader
+from .base_loader import BaseLoader
 
 
 class URLLoader(BaseLoader):

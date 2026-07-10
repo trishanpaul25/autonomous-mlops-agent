@@ -1,16 +1,18 @@
-from agents.data_ingestion_agent import DataIngestionAgent
+from graph.workflow import workflow
 
-agent = DataIngestionAgent()
+from state.pipeline_state import PipelineState
 
-result = agent.ingest("data/titanic.csv")
 
-if result["status"] == "success":
-    print("Dataset Loaded Successfully\n")
+def main():
 
-    print(result["metadata"])
+    state = PipelineState(
+        user_prompt="Build a Titanic survival prediction model using data/titanic.csv"
+    )
 
-    print("\nFirst 5 Rows\n")
-    print(result["data"].head())
+    result = workflow.invoke(state)
 
-else:
-    print(result["message"])
+    print(result)
+
+
+if __name__ == "__main__":
+    main()
