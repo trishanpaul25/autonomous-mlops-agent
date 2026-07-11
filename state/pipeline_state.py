@@ -4,6 +4,7 @@ Global Pipeline State shared across all agents.
 from pydantic import Field
 from .base_state import BaseState
 from .dataset_state import DatasetState
+from .validation_state import ValidationState
 class PipelineState(BaseState):
     """
     Shared state that flows through the complete LangGraph pipeline.
@@ -13,6 +14,9 @@ class PipelineState(BaseState):
     session_id: str | None = None
     dataset: DatasetState = Field(
         default_factory=DatasetState
+    )
+    validation: ValidationState = Field(
+        default_factory=ValidationState
     )
     current_agent: str = ""
     completed_steps: list[str] = Field(
