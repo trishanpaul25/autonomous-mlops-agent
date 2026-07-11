@@ -13,7 +13,7 @@ class LLMService:
     def get_llm():
         if not os.getenv("GEMINI_API_KEY") and not os.getenv("GOOGLE_API_KEY"):
             raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY not set in .env file.")
-        model_name = os.getenv("MODEL_NAME", "gemini-2.0-flash-lite")
+        model_name = os.getenv("MODEL_NAME", "gemini-3.1-flash-lite")
         logger.info(f"Using LLM model: {model_name}")
         return ChatGoogleGenerativeAI(
             model=model_name,
