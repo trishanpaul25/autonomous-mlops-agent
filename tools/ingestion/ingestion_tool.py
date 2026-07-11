@@ -93,10 +93,6 @@ class IngestionTool(BaseTool):
                 "Dataset loaded successfully."
             )
 
-            pipeline_state.completed_steps.append(
-                "Data Ingestion"
-            )
-
             pipeline_state.status = "running"
 
             return pipeline_state
