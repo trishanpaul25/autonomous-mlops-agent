@@ -16,6 +16,7 @@ from agents.base_agent import BaseAgent
 from agents.dataset_resolver_agent import DatasetResolverAgent
 from agents.data_ingestion_agent import DataIngestionAgent
 from agents.validation_agent import ValidationAgent
+from agents.feature_engineering_agent import FeatureEngineeringAgent
 
 from state.pipeline_state import PipelineState
 
@@ -34,7 +35,8 @@ class MasterOrchestratorAgent(BaseAgent):
             "data_ingestion": DataIngestionAgent(),
 
             "validation": ValidationAgent(),
-            # "feature": FeatureAgent(),
+
+            "feature_engineering": FeatureEngineeringAgent(),
             # "training": TrainingAgent(),
             # "evaluation": EvaluationAgent(),
             # "registry": RegistryAgent(),
@@ -50,6 +52,8 @@ class MasterOrchestratorAgent(BaseAgent):
             "data_ingestion",
 
             "validation",
+
+            "feature_engineering",
 
         ]
 
