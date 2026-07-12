@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from server.api.router import api_router
 from server.core.config import settings
 from server.core.logging import initialize_logging, get_logger
+from server.middleware import register_exception_handlers
 from contextlib import asynccontextmanager
 """
   This ensures logging is initialized exactly once during application startup and gives you a clean place to initialize other resources later (database connections, MLflow, Redis, etc.)
@@ -21,9 +22,26 @@ app = FastAPI(
   lifespan=lifespan
 )
 
+#from the middleware to register all global exception handlers
+register_exception_handlers(app)
+
 app.include_router(api_router)
 
 @app.get("/")
 def root():
   logger.info("Root endpoint accessed")
   return {"message": "Autonomous MLOps AI Backend Running"}
+
+from server.exceptions import DatasetNotFoundException
+
+"""
+middleware exception testing
+@app.get("/test-error")
+def test():
+    raise DatasetNotFoundException()
+
+@app.get("/test-crash")
+def crash():
+    x = 1 / 0
+
+"""

@@ -14,6 +14,12 @@ class FileType(str, Enum):
     JSON = ".json"
     ZIP = ".zip"
 
+class ErrorCode(str, Enum):
+    INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR"
+    DATASET_NOT_FOUND = "DATASET_NOT_FOUND"
+    UNSUPPORTED_FILE_TYPE = "UNSUPPORTED_FILE_TYPE"
+    EMPTY_DATASET = "EMPTY_DATASET"
+
 
 DEFAULT_ENCODING = "utf-8"
 
