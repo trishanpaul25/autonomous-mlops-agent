@@ -42,6 +42,18 @@ def main():
     logger.info("========== FEATURE ENGINEERING ==========")
     logger.info("Feature Engineering: %s", result.feature_engineering.model_dump())
 
+    logger.info("========== MODEL SELECTION ==========")
+    logger.info("Task type: %s", result.model_selection.task_type)
+    logger.info("Primary model: %s", result.model_selection.primary_model_name)
+    logger.info("Primary model class: %s", result.model_selection.primary_model_class_path)
+    logger.info("Ranking: %s", result.model_selection.ranking)
+    logger.info("Confidence: %.2f", result.model_selection.confidence)
+    logger.info("Reasoning: %s", result.model_selection.reasoning)
+    if result.model_selection.assumptions:
+        logger.info("Assumptions: %s", result.model_selection.assumptions)
+    if result.model_selection.warnings:
+        logger.info("Warnings: %s", result.model_selection.warnings)
+
 if __name__ == "__main__":
 
     main()

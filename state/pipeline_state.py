@@ -6,6 +6,7 @@ from .base_state import BaseState
 from .dataset_state import DatasetState
 from .validation_state import ValidationState
 from .feature_engineering_state import FeatureEngineeringState
+from .model_selection_state import ModelSelectionState
 class PipelineState(BaseState):
     """
     Shared state that flows through the complete LangGraph pipeline.
@@ -21,6 +22,9 @@ class PipelineState(BaseState):
     )
     feature_engineering: FeatureEngineeringState = Field(
         default_factory=FeatureEngineeringState
+    )
+    model_selection: ModelSelectionState = Field(
+        default_factory=ModelSelectionState
     )
     current_agent: str = ""
     completed_steps: list[str] = Field(
