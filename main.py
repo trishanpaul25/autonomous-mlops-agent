@@ -54,6 +54,31 @@ def main():
     if result.model_selection.warnings:
         logger.info("Warnings: %s", result.model_selection.warnings)
 
+    logger.info("========== MODEL TRAINING ==========")
+    logger.info("Training status: %s", result.model_training.training_status)
+    logger.info("Train samples: %d | Test samples: %d | Stratified: %s",
+                result.model_training.train_samples,
+                result.model_training.test_samples,
+                result.model_training.stratified)
+    logger.info("Total training time: %.2fs", result.model_training.total_execution_time_seconds)
+    logger.info("Trained models (%d):", len(result.model_training.trained_models))
+    for record in result.model_training.trained_models:
+        logger.info(
+            "  [SUCCESS] %s — %.3fs — id: %s",
+            record.get("model_name"),
+            record.get("training_time_seconds", 0),
+            record.get("model_identifier"),
+        )
+    if result.model_training.failed_models:
+        logger.info("Failed models (%d):", len(result.model_training.failed_models))
+        for record in result.model_training.failed_models:
+            logger.info(
+                "  [FAILED]  %s — %s",
+                record.get("model_name"),
+                record.get("notes"),
+            )
+    logger.info("Summary: %s", result.model_training.summary)
+
 if __name__ == "__main__":
 
     main()

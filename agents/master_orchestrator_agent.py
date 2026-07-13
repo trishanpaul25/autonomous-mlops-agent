@@ -18,6 +18,7 @@ from agents.data_ingestion_agent import DataIngestionAgent
 from agents.validation_agent import ValidationAgent
 from agents.feature_engineering_agent import FeatureEngineeringAgent
 from agents.model_selection_agent import ModelSelectionAgent
+from agents.model_training_agent import ModelTrainingAgent
 
 from state.pipeline_state import PipelineState
 
@@ -40,7 +41,9 @@ class MasterOrchestratorAgent(BaseAgent):
             "feature_engineering": FeatureEngineeringAgent(),
 
             "model_selection": ModelSelectionAgent(),
-            # "training": TrainingAgent(),
+
+            "model_training": ModelTrainingAgent(),
+            # "hyperparameter_optimization": HPOAgent(),
             # "evaluation": EvaluationAgent(),
             # "registry": RegistryAgent(),
             # "deployment": DeploymentAgent(),
@@ -59,6 +62,8 @@ class MasterOrchestratorAgent(BaseAgent):
             "feature_engineering",
 
             "model_selection",
+
+            "model_training",
 
         ]
 

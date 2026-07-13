@@ -26,12 +26,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from tools.model_selection.dataset_profiler import DatasetProfile
-
-
-# ---------------------------------------------------------------------------
-# Task Type Enum
-# ---------------------------------------------------------------------------
-
 class TaskType(str, Enum):
     """
     Supported ML task types.
