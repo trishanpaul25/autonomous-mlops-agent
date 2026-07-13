@@ -5,6 +5,7 @@ from pydantic import Field
 from .base_state import BaseState
 from .dataset_state import DatasetState
 from .validation_state import ValidationState
+from .feature_engineering_state import FeatureEngineeringState
 class PipelineState(BaseState):
     """
     Shared state that flows through the complete LangGraph pipeline.
@@ -17,6 +18,9 @@ class PipelineState(BaseState):
     )
     validation: ValidationState = Field(
         default_factory=ValidationState
+    )
+    feature_engineering: FeatureEngineeringState = Field(
+        default_factory=FeatureEngineeringState
     )
     current_agent: str = ""
     completed_steps: list[str] = Field(

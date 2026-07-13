@@ -39,6 +39,9 @@ def main():
     logger.info("Validation: %s", result.validation.model_dump())
 
 
+    logger.info("========== FEATURE ENGINEERING ==========")
+    logger.info("Feature Engineering: %s", result.feature_engineering.model_dump())
+
 if __name__ == "__main__":
 
     main()
