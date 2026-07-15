@@ -8,6 +8,8 @@ from .validation_state import ValidationState
 from .feature_engineering_state import FeatureEngineeringState
 from .model_selection_state import ModelSelectionState
 from .model_training_state import ModelTrainingState
+from .hyperparameter_optimization_state import HyperparameterOptimizationState
+from .model_evaluation_state import ModelEvaluationState
 class PipelineState(BaseState):
     """
     Shared state that flows through the complete LangGraph pipeline.
@@ -29,6 +31,12 @@ class PipelineState(BaseState):
     )
     model_training: ModelTrainingState = Field(
         default_factory=ModelTrainingState
+    )
+    hyperparameter_optimization: HyperparameterOptimizationState = Field(
+        default_factory=HyperparameterOptimizationState
+    )
+    model_evaluation: ModelEvaluationState = Field(
+        default_factory=ModelEvaluationState
     )
     current_agent: str = ""
     completed_steps: list[str] = Field(

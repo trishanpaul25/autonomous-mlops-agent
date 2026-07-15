@@ -22,27 +22,10 @@ Usage
 """
 
 from __future__ import annotations
-
 import importlib
 from typing import Any
-
 from utils.logger import logger
-
-
-# ---------------------------------------------------------------------------
-# Default constructor kwargs per class_path
-# ---------------------------------------------------------------------------
-# These apply on top of the class's own defaults to ensure:
-#   - Reproducibility via random_state
-#   - Parallel CPU usage via n_jobs where supported
-#   - Silent training (no progress bars / verbose output)
-#
-# Keys must exactly match class_path strings from the ModelRegistry.
-# Any class_path NOT in this dict will be instantiated with no kwargs,
-# relying entirely on the library's own defaults.
-
 _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
-    # --- sklearn classification ---
     "sklearn.linear_model.LogisticRegression": {
         "random_state": 42,
         "max_iter": 1000,
@@ -75,8 +58,6 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
     "sklearn.neighbors.KNeighborsClassifier": {
         "n_jobs": -1,
     },
-
-    # --- sklearn regression ---
     "sklearn.linear_model.LinearRegression": {
         "n_jobs": -1,
     },
@@ -104,8 +85,6 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
         "random_state": 42,
     },
     "sklearn.svm.SVR": {},
-
-    # --- sklearn clustering ---
     "sklearn.cluster.KMeans": {
         "n_clusters": 5,
         "random_state": 42,
@@ -119,8 +98,6 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
         "n_components": 5,
         "random_state": 42,
     },
-
-    # --- xgboost ---
     "xgboost.XGBClassifier": {
         "n_estimators": 100,
         "random_state": 42,
@@ -134,8 +111,6 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
         "n_jobs": -1,
         "verbosity": 0,
     },
-
-    # --- lightgbm ---
     "lightgbm.LGBMClassifier": {
         "n_estimators": 100,
         "random_state": 42,
@@ -148,8 +123,6 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
         "n_jobs": -1,
         "verbosity": -1,
     },
-
-    # --- catboost ---
     "catboost.CatBoostClassifier": {
         "iterations": 100,
         "random_state": 42,

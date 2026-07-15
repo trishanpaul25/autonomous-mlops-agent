@@ -8,6 +8,8 @@ from .validation_state import ValidationState
 from .feature_engineering_state import FeatureEngineeringState
 from .model_selection_state import ModelSelectionState
 from .model_training_state import ModelTrainingState
+from .hyperparameter_optimization_state import HyperparameterOptimizationState
+from .model_evaluation_state import ModelEvaluationState
 from .pipeline_state import PipelineState
 
 __all__ = [
@@ -17,5 +19,7 @@ __all__ = [
     "FeatureEngineeringState",
     "ModelSelectionState",
     "ModelTrainingState",
+    "HyperparameterOptimizationState",
+    "ModelEvaluationState",
     "PipelineState",
 ]

@@ -19,6 +19,8 @@ from agents.validation_agent import ValidationAgent
 from agents.feature_engineering_agent import FeatureEngineeringAgent
 from agents.model_selection_agent import ModelSelectionAgent
 from agents.model_training_agent import ModelTrainingAgent
+from agents.hyperparameter_optimization_agent import HyperparameterOptimizationAgent
+from agents.model_evaluation_agent import ModelEvaluationAgent
 
 from state.pipeline_state import PipelineState
 
@@ -43,8 +45,10 @@ class MasterOrchestratorAgent(BaseAgent):
             "model_selection": ModelSelectionAgent(),
 
             "model_training": ModelTrainingAgent(),
-            # "hyperparameter_optimization": HPOAgent(),
-            # "evaluation": EvaluationAgent(),
+
+            "hyperparameter_optimization": HyperparameterOptimizationAgent(),
+
+            "model_evaluation": ModelEvaluationAgent(),
             # "registry": RegistryAgent(),
             # "deployment": DeploymentAgent(),
             # "monitoring": MonitoringAgent(),
@@ -64,6 +68,10 @@ class MasterOrchestratorAgent(BaseAgent):
             "model_selection",
 
             "model_training",
+
+            "hyperparameter_optimization",
+
+            "model_evaluation",
 
         ]
 

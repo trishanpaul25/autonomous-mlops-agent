@@ -79,6 +79,91 @@ def main():
             )
     logger.info("Summary: %s", result.model_training.summary)
 
+    logger.info("========== HYPERPARAMETER OPTIMIZATION ==========")
+    hpo = result.hyperparameter_optimization
+    logger.info("HPO status: %s", hpo.optimization_status)
+    logger.info("Scoring metric: %s", hpo.scoring_metric)
+    logger.info("Total HPO time: %.2fs", hpo.total_execution_time_seconds)
+    if hpo.best_overall_model_name:
+        logger.info(
+            "Best model: %s (score=%.4f)",
+            hpo.best_overall_model_name,
+            hpo.best_overall_score,
+        )
+    logger.info("Optimized models (%d):", len(hpo.optimized_models))
+    for record in hpo.optimized_models:
+        logger.info(
+            "  [OPTIMIZED] %s — %.3fs — score: %.4f — params: %s",
+            record.get("model_name"),
+            record.get("optimization_time_seconds", 0),
+            record.get("best_score", 0),
+            record.get("best_parameters", {}),
+        )
+    if hpo.failed_models:
+        logger.info("Failed/Skipped models (%d):", len(hpo.failed_models))
+        for record in hpo.failed_models:
+            logger.info(
+                "  [%s] %s — %s",
+                record.get("optimization_status", "failed").upper(),
+                record.get("model_name"),
+                record.get("notes"),
+            )
+    logger.info("Summary: %s", hpo.summary)
+
+    logger.info("========== MODEL EVALUATION ==========")
+    ev = result.model_evaluation
+    logger.info("Evaluation status: %s", ev.evaluation_status)
+    logger.info("Task type: %s", ev.task_type)
+    logger.info("Primary metric: %s", ev.primary_metric)
+    logger.info("Total evaluation time: %.2fs", ev.total_execution_time_seconds)
+    if ev.best_model_name:
+        primary_val = ev.best_model_metrics.get(ev.primary_metric or "", 0.0)
+        logger.info(
+            "Best model: %s (%s=%.4f)",
+            ev.best_model_name,
+            ev.primary_metric,
+            primary_val,
+        )
+    logger.info("Evaluated models (%d):", len(ev.evaluated_models))
+    for record in ev.evaluated_models:
+        metrics = record.get("metrics", {})
+        metrics_str = " | ".join(
+            f"{k}={v:.4f}" for k, v in sorted(metrics.items())
+        )
+        logger.info(
+            "  [Rank %d] %s — %s (%.3fs)",
+            record.get("rank", 0),
+            record.get("model_name"),
+            metrics_str,
+            record.get("prediction_time_seconds", 0),
+        )
+    if ev.failed_models:
+        logger.info("Failed/Skipped models (%d):", len(ev.failed_models))
+        for record in ev.failed_models:
+            logger.info(
+                "  [%s] %s — %s",
+                record.get("evaluation_status", "failed").upper(),
+                record.get("model_name"),
+                record.get("notes"),
+            )
+    if ev.comparison_table:
+        logger.info("Comparison table:")
+        for row in ev.comparison_table:
+            row_str = " | ".join(
+                f"{k}={v:.4f}" if isinstance(v, float) else f"{k}={v}"
+                for k, v in row.items()
+                if k not in ("model_name", "prediction_time_seconds")
+            )
+            logger.info("  %s: %s", row.get("model_name"), row_str)
+    if ev.visualization_data:
+        logger.info(
+            "Visualization data available for: %s",
+            list(ev.visualization_data.keys()),
+        )
+    if ev.narrative:
+        logger.info("Narrative: %s", ev.narrative)
+    logger.info("Summary: %s", ev.summary)
+
 if __name__ == "__main__":
 
     main()

@@ -22,21 +22,6 @@ The agent orchestrates four internal utilities:
 3. ModelTrainingTool  — writes results into ModelTrainingState
 
 No LLM is used. Training is a deterministic computation step.
-
-Error Handling Matrix
----------------------
-┌──────────────────────────────────────┬──────────────────────────────────┐
-│ Scenario                             │ Behaviour                        │
-├──────────────────────────────────────┼──────────────────────────────────┤
-│ Model Selection not completed        │ ValueError → pipeline fails      │
-│ DataFrame missing or empty           │ ValueError → pipeline fails      │
-│ Feature columns empty                │ ValueError → pipeline fails      │
-│ Individual model instantiation fails │ Record, continue loop            │
-│ Individual model fit fails           │ Record, continue loop            │
-│ Library not installed (ImportError)  │ Record gracefully, warn          │
-│ All models fail                      │ status="failed" → pipeline fails │
-│ ≥ 1 model succeeds                   │ status="partial" or "completed"  │
-└──────────────────────────────────────┴──────────────────────────────────┘
 """
 
 from __future__ import annotations
