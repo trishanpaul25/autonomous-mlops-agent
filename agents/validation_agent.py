@@ -30,6 +30,7 @@ class ValidationAgent(BaseAgent):
             check_duplicates=True,
             check_data_types=True,
             detect_target_column=True,
+            target_column=None,
             infer_problem_type=True,
             problem_type="unknown",
             reasoning="Using default validation checks because no LLM is available.",

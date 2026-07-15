@@ -35,6 +35,11 @@ class ValidationOutput(BaseModel):
         description="Whether the target column should be detected."
     )
 
+    target_column: str | None = Field(
+        default=None,
+        description="The detected target column name inferred from the user prompt and dataset columns."
+    )
+
     infer_problem_type: bool = Field(
         default=True,
         description="Whether the ML problem type should be inferred."
