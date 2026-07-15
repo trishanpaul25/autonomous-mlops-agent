@@ -94,8 +94,7 @@ class DatasetResolverAgent(BaseAgent):
             )
 
             return state
-    
-    def run(self, state: PipelineState) -> PipelineState:
+        
         try:
             state.current_agent = "DatasetResolverAgent"
             logger.info("Resolving dataset source...")
