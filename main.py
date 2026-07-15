@@ -15,6 +15,7 @@ def main():
     logger.info("Initialising pipeline...")
 
     state = PipelineState(
+
         user_prompt="Build a Titanic survival prediction model using data/titanic.csv"
     )
     logger.info("User prompt: %s", state.user_prompt)
