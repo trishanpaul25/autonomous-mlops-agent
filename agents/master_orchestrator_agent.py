@@ -11,6 +11,8 @@ from agents.model_selection_agent import ModelSelectionAgent
 from agents.model_training_agent import ModelTrainingAgent
 from agents.hyperparameter_optimization_agent import HyperparameterOptimizationAgent
 from agents.model_evaluation_agent import ModelEvaluationAgent
+from server.core.constants import PipelineStatus
+
 from state.pipeline_state import PipelineState
 from utils.logger import logger
 
@@ -36,7 +38,9 @@ class MasterOrchestratorAgent(BaseAgent):
 
     def run(self, state: PipelineState) -> PipelineState:
         state.current_agent = "MasterOrchestrator"
-        state.status = "running"
+
+        state.status = PipelineStatus.RUNNING
+
         logger.info("Pipeline started. Execution order: %s", self.execution_order)
 
         for agent_name in self.execution_order:
@@ -44,7 +48,8 @@ class MasterOrchestratorAgent(BaseAgent):
             logger.info("Dispatching agent: %s", agent_name)
             state = agent.run(state)
 
-            if state.status == "failed":
+            if state.status == PipelineStatus.FAILED:
+
                 logger.error(
                     "Pipeline stopped at agent '%s'. Error: %s",
                     agent_name, state.error,
@@ -52,14 +57,16 @@ class MasterOrchestratorAgent(BaseAgent):
                 state.logs.append(f"Pipeline stopped at {agent_name}.")
                 return state
 
-            if state.status == "waiting_for_user":
+            if state.status == PipelineStatus.WAITING_FOR_USER:
+
                 logger.warning(
                     "Pipeline paused at agent '%s' — waiting for user input.",
                     agent_name,
                 )
                 return state
 
-        state.status = "completed"
+        state.status = PipelineStatus.SUCCESS
+
         logger.info("Pipeline completed successfully. Steps: %s", state.completed_steps)
         state.logs.append("Pipeline executed successfully.")
         return state

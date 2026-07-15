@@ -9,6 +9,7 @@ from tools.base_tool import BaseTool
 from .dataset_loader import DatasetLoader
 from .metadata_generator import MetadataGenerator
 
+from server.core.constants import PipelineStatus
 
 class IngestionTool(BaseTool):
     """Executes dataset ingestion and updates the PipelineState."""
@@ -34,12 +35,18 @@ class IngestionTool(BaseTool):
             ds.loaded = True
             ds.dataset_version = "v1"
 
-            pipeline_state.logs.append("Dataset loaded successfully.")
-            pipeline_state.status = "running"
+            pipeline_state.logs.append(
+                "Dataset loaded successfully."
+            )
+
+            pipeline_state.status = PipelineStatus.RUNNING
+
             return pipeline_state
 
         except Exception as e:
-            pipeline_state.status = "failed"
+
+            pipeline_state.status = PipelineStatus.FAILED
+
             pipeline_state.error = str(e)
             pipeline_state.logs.append(f"Data ingestion failed: {e}")
             return pipeline_state

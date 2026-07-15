@@ -14,6 +14,7 @@ from state.pipeline_state import PipelineState
 from tools.feature_engineering.feature_engineering_tool import FeatureEngineeringTool
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class FeatureEngineeringAgent(BaseAgent):
 
@@ -92,7 +93,9 @@ class FeatureEngineeringAgent(BaseAgent):
                 })
 
             if fe_output.needs_clarification:
-                state.status = "waiting_for_user"
+
+                state.status = PipelineStatus.WAITING_FOR_USER
+
                 logger.warning(
                     "Feature engineering requires clarification: %s",
                     fe_output.clarification_question,
@@ -110,7 +113,9 @@ class FeatureEngineeringAgent(BaseAgent):
             return state
 
         except Exception as e:
-            state.status = "failed"
+
+            state.status = PipelineStatus.FAILED
+
             state.error = str(e)
             logger.error("Feature engineering failed: %s", e, exc_info=True)
             state.logs.append(f"Feature engineering failed: {e}")

@@ -68,6 +68,7 @@ from tools.model_evaluation.metrics_registry import MetricsRegistry
 
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class ModelEvaluationAgent(BaseAgent):
     """
@@ -291,7 +292,7 @@ class ModelEvaluationAgent(BaseAgent):
             if self.chain is not None and succeeded:
                 state = self._generate_narrative(state, output)
             if evaluation_status == "failed":
-                state.status = "failed"
+                state.status = PipelineStatus.FAILED
                 state.error = (
                     "All candidate models failed evaluation. "
                     f"Errors: {'; '.join(all_errors)}"
@@ -301,7 +302,7 @@ class ModelEvaluationAgent(BaseAgent):
             return state
 
         except Exception as exc:
-            state.status = "failed"
+            state.status = PipelineStatus.FAILED
             state.error = str(exc)
 
             logger.error(

@@ -68,6 +68,7 @@ from tools.hyperparameter_optimization.scoring_strategy_selector import (
 
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class HyperparameterOptimizationAgent(BaseAgent):
     """
@@ -298,7 +299,7 @@ class HyperparameterOptimizationAgent(BaseAgent):
                 f"Time: {total_elapsed:.2f}s"
             )
             if optimization_status == "failed":
-                state.status = "failed"
+                state.status = PipelineStatus.FAILED
                 state.error = (
                     "All candidate models failed hyperparameter optimization. "
                     f"Errors: {'; '.join(all_errors)}"
@@ -310,7 +311,7 @@ class HyperparameterOptimizationAgent(BaseAgent):
             return state
 
         except Exception as exc:
-            state.status = "failed"
+            state.status = PipelineStatus.FAILED
             state.error = str(exc)
 
             logger.error(

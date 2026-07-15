@@ -12,6 +12,7 @@ from state.pipeline_state import PipelineState
 from tools.validation.validation_tool import ValidationTool
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class ValidationAgent(BaseAgent):
 
@@ -52,7 +53,9 @@ class ValidationAgent(BaseAgent):
                 })
 
             if validation_output.needs_clarification:
-                state.status = "waiting_for_user"
+
+                state.status = PipelineStatus.WAITING_FOR_USER
+
                 logger.warning(
                     "Validation requires clarification: %s",
                     validation_output.clarification_question,
@@ -71,7 +74,9 @@ class ValidationAgent(BaseAgent):
             return state
 
         except Exception as e:
-            state.status = "failed"
+
+            state.status = PipelineStatus.FAILED
+
             state.error = str(e)
             logger.error("Validation failed: %s", e, exc_info=True)
             state.logs.append(f"Validation failed: {e}")

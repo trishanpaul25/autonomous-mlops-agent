@@ -8,6 +8,7 @@ from state.pipeline_state import PipelineState
 from tools.ingestion.ingestion_tool import IngestionTool
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class DataIngestionAgent(BaseAgent):
     """Loads the dataset and updates the DatasetState."""
@@ -44,7 +45,9 @@ class DataIngestionAgent(BaseAgent):
             return state
 
         except Exception as e:
-            state.status = "failed"
+
+            state.status = PipelineStatus.FAILED
+
             state.error = str(e)
             logger.error("Data ingestion failed: %s", e, exc_info=True)
             state.logs.append(f"Data ingestion failed: {e}")

@@ -43,6 +43,7 @@ from tools.model_training.train_test_splitter import TrainTestSplitter
 
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class ModelTrainingAgent(BaseAgent):
     """
@@ -213,7 +214,7 @@ class ModelTrainingAgent(BaseAgent):
                 f"Time: {total_elapsed:.2f}s"
             )
             if training_status == "failed":
-                state.status = "failed"
+                state.status = PipelineStatus.FAILED
                 state.error = (
                     "All candidate models failed to train. "
                     f"Errors: {'; '.join(all_errors)}"
@@ -226,7 +227,7 @@ class ModelTrainingAgent(BaseAgent):
 
         except Exception as e:
 
-            state.status = "failed"
+            state.status = PipelineStatus.FAILED
             state.error = str(e)
 
             logger.error(

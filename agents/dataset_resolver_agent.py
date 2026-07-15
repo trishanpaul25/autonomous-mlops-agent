@@ -12,6 +12,7 @@ from schemas.dataset_resolver_schema import DatasetResolverOutput
 from services.llm_service import LLMService
 from state.pipeline_state import PipelineState
 from utils.logger import logger
+from server.core.constants import PipelineStatus
 
 _EXT_TO_SOURCE_TYPE = {"csv": "csv", "xlsx": "excel", "xls": "excel", "json": "json", "zip": "zip"}
 _BUILTIN_NAMES = ["iris", "wine", "breast cancer"]
@@ -69,6 +70,31 @@ class DatasetResolverAgent(BaseAgent):
             clarification_question="Please provide a dataset path, URL, or built-in dataset name.",
         )
 
+    def run(
+        self,
+        state: PipelineState,
+    ) -> PipelineState:
+        """
+        adding this to handle uploaded datasets
+        if finds a dataset which is uploaded resolver
+        is skipped
+        """
+        if state.dataset.dataset_path:
+
+            logger.info(
+                "Using uploaded dataset. Skipping dataset resolution."
+            )
+
+            state.completed_steps.append(
+                "Dataset Resolver"
+            )
+
+            state.logs.append(
+                "Uploaded dataset detected."
+            )
+
+            return state
+    
     def run(self, state: PipelineState) -> PipelineState:
         try:
             state.current_agent = "DatasetResolverAgent"
@@ -92,19 +118,43 @@ class DatasetResolverAgent(BaseAgent):
                         raise
 
             if resolver_output.needs_clarification:
-                state.status = "waiting_for_user"
+
+                state.status = PipelineStatus.WAITING_FOR_USER
+
+                state.logs.append(
+                    resolver_output.clarification_question
+                )
+
                 state.logs.append(resolver_output.clarification_question)
                 return state
 
             state.dataset.source_type = resolver_output.source_type
             state.dataset.dataset_name = resolver_output.dataset_name
+
+            """
+            for uploaded datasets we already have 
+            state.dataset.dataset_path
+            so checking before overwriting
+            """
+            if not state.dataset.dataset_path:
+                state.dataset.dataset_path = resolver_output.source
+
+            state.completed_steps.append(
+                "Dataset Resolver"
+            )
+
+            state.logs.append(
+                "Dataset resolved successfully."
+            )
+
             state.dataset.dataset_path = resolver_output.source
             state.completed_steps.append("Dataset Resolver")
             state.logs.append("Dataset resolved successfully.")
             return state
 
         except Exception as e:
-            state.status = "failed"
+
+            state.status = PipelineStatus.FAILED
             state.error = str(e)
             state.logs.append(f"Dataset Resolver failed: {e}")
             return state

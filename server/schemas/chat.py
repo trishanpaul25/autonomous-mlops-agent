@@ -3,13 +3,16 @@ from pydantic import BaseModel
 
 class ChatRequest(BaseModel):
     prompt: str
+    dataset_id: str | None = None
 
 
 class ChatResponse(BaseModel):
     user_prompt: str
-    # assistant_message: str = ""   # We'll add this later
+    assistant_message: str | None = None
 
+    run_id : str
     status: str
+    execution_time: float | None = None
     completed_steps: list[str]
     logs: list[str]
 

@@ -6,6 +6,7 @@ class PipelineStatus(str, Enum):
     RUNNING = "RUNNING"
     SUCCESS = "SUCCESS"
     FAILED = "FAILED"
+    WAITING_FOR_USER = "WAITING_FOR_USER"
 
 
 class FileType(str, Enum):
