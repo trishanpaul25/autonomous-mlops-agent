@@ -45,7 +45,7 @@ from tools.model_selection.model_registry import ModelRegistry, TaskType, _compu
 from tools.model_selection.model_selection_tool import ModelSelectionTool
 
 from utils.logger import logger
-
+from server.core.constants import PipelineStatus
 
 class ModelSelectionAgent(BaseAgent):
     """
@@ -333,7 +333,7 @@ class ModelSelectionAgent(BaseAgent):
                 )
             if ms_output.needs_clarification:
 
-                state.status = "waiting_for_user"
+                state.status = PipelineStatus.WAITING_FOR_USER
 
                 logger.warning(
                     "ModelSelectionAgent requires clarification: %s",
@@ -373,7 +373,7 @@ class ModelSelectionAgent(BaseAgent):
 
         except Exception as e:
 
-            state.status = "failed"
+            state.status = PipelineStatus.FAILED
 
             state.error = str(e)
 

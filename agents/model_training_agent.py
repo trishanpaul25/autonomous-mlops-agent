@@ -22,21 +22,6 @@ The agent orchestrates four internal utilities:
 3. ModelTrainingTool  — writes results into ModelTrainingState
 
 No LLM is used. Training is a deterministic computation step.
-
-Error Handling Matrix
----------------------
-┌──────────────────────────────────────┬──────────────────────────────────┐
-│ Scenario                             │ Behaviour                        │
-├──────────────────────────────────────┼──────────────────────────────────┤
-│ Model Selection not completed        │ ValueError → pipeline fails      │
-│ DataFrame missing or empty           │ ValueError → pipeline fails      │
-│ Feature columns empty                │ ValueError → pipeline fails      │
-│ Individual model instantiation fails │ Record, continue loop            │
-│ Individual model fit fails           │ Record, continue loop            │
-│ Library not installed (ImportError)  │ Record gracefully, warn          │
-│ All models fail                      │ status="failed" → pipeline fails │
-│ ≥ 1 model succeeds                   │ status="partial" or "completed"  │
-└──────────────────────────────────────┴──────────────────────────────────┘
 """
 
 from __future__ import annotations
@@ -58,6 +43,7 @@ from tools.model_training.train_test_splitter import TrainTestSplitter
 
 from utils.logger import logger
 
+from server.core.constants import PipelineStatus
 
 class ModelTrainingAgent(BaseAgent):
     """
@@ -228,7 +214,7 @@ class ModelTrainingAgent(BaseAgent):
                 f"Time: {total_elapsed:.2f}s"
             )
             if training_status == "failed":
-                state.status = "failed"
+                state.status = PipelineStatus.FAILED
                 state.error = (
                     "All candidate models failed to train. "
                     f"Errors: {'; '.join(all_errors)}"
@@ -241,7 +227,7 @@ class ModelTrainingAgent(BaseAgent):
 
         except Exception as e:
 
-            state.status = "failed"
+            state.status = PipelineStatus.FAILED
             state.error = str(e)
 
             logger.error(
