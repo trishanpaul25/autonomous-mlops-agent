@@ -7,6 +7,8 @@ from .dataset_resolver_agent import DatasetResolverAgent
 from .data_ingestion_agent import DataIngestionAgent
 from .validation_agent import ValidationAgent
 from .feature_engineering_agent import FeatureEngineeringAgent
+from .model_selection_agent import ModelSelectionAgent
+from .model_training_agent import ModelTrainingAgent
 
 __all__ = [
     "BaseAgent",
@@ -14,4 +16,6 @@ __all__ = [
     "DataIngestionAgent",
     "ValidationAgent",
     "FeatureEngineeringAgent",
+    "ModelSelectionAgent",
+    "ModelTrainingAgent",
 ]

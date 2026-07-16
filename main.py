@@ -39,6 +39,46 @@ def main():
     logger.info("Validation: %s", result.validation.model_dump())
 
 
+    logger.info("========== FEATURE ENGINEERING ==========")
+    logger.info("Feature Engineering: %s", result.feature_engineering.model_dump())
+
+    logger.info("========== MODEL SELECTION ==========")
+    logger.info("Task type: %s", result.model_selection.task_type)
+    logger.info("Primary model: %s", result.model_selection.primary_model_name)
+    logger.info("Primary model class: %s", result.model_selection.primary_model_class_path)
+    logger.info("Ranking: %s", result.model_selection.ranking)
+    logger.info("Confidence: %.2f", result.model_selection.confidence)
+    logger.info("Reasoning: %s", result.model_selection.reasoning)
+    if result.model_selection.assumptions:
+        logger.info("Assumptions: %s", result.model_selection.assumptions)
+    if result.model_selection.warnings:
+        logger.info("Warnings: %s", result.model_selection.warnings)
+
+    logger.info("========== MODEL TRAINING ==========")
+    logger.info("Training status: %s", result.model_training.training_status)
+    logger.info("Train samples: %d | Test samples: %d | Stratified: %s",
+                result.model_training.train_samples,
+                result.model_training.test_samples,
+                result.model_training.stratified)
+    logger.info("Total training time: %.2fs", result.model_training.total_execution_time_seconds)
+    logger.info("Trained models (%d):", len(result.model_training.trained_models))
+    for record in result.model_training.trained_models:
+        logger.info(
+            "  [SUCCESS] %s — %.3fs — id: %s",
+            record.get("model_name"),
+            record.get("training_time_seconds", 0),
+            record.get("model_identifier"),
+        )
+    if result.model_training.failed_models:
+        logger.info("Failed models (%d):", len(result.model_training.failed_models))
+        for record in result.model_training.failed_models:
+            logger.info(
+                "  [FAILED]  %s — %s",
+                record.get("model_name"),
+                record.get("notes"),
+            )
+    logger.info("Summary: %s", result.model_training.summary)
+
 if __name__ == "__main__":
 
     main()
