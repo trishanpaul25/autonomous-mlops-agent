@@ -24,19 +24,42 @@ You NEVER train machine learning models.
 
 Based on the dataset metadata and validation results, decide:
 
-1. Which columns (if any) should be dropped before modeling
+1. Whether any NEW columns should be derived from existing ones
+   before anything else runs. Look for:
+   - a free-text column with a consistent extractable pattern
+     (e.g. a title embedded inside a "Last, Title. First" name
+     column) -> operation "regex_extract"
+   - the first letter/character of a mostly-missing, high-cardinality
+     category still carrying signal, instead of just dropping it
+     (e.g. a cabin code) -> operation "first_char"
+   - two or more numeric columns whose sum is more meaningful than
+     either alone (e.g. sibling/spouse count + parent/child count
+     -> family size) -> operation "sum_columns"
+   - a ratio between two numeric columns (e.g. amount per person)
+     -> operation "ratio_columns"
+   - a heavily right-skewed numeric column -> operation "log1p"
+   - whether a value being missing is itself informative
+     -> operation "missing_flag"
+   - a binary flag derived from one column equalling a specific value
+     -> operation "equals_flag"
+   Only propose derivations from columns that actually exist in the
+   metadata below. If nothing meaningful can be derived, return an
+   empty list — do not force a derived feature.
+2. Which columns (if any) should be dropped before modeling
    (e.g. identifiers, free-text columns, constant columns, or
    columns that would leak the target). NEVER drop the target column.
-2. Whether missing values should be handled, and which imputation
+   A column that was just used as the source of a derived feature can
+   still be dropped afterward if it carries no further signal itself.
+3. Whether missing values should be handled, and which imputation
    strategy fits numeric and categorical columns respectively.
-3. Whether outliers should be treated, and which method to use.
-4. Whether categorical columns should be encoded, and which method
+4. Whether outliers should be treated, and which method to use.
+5. Whether categorical columns should be encoded, and which method
    (one-hot for low-cardinality, label encoding for high-cardinality
    or ordinal-like columns).
-5. Whether numeric columns should be scaled, and which method fits
+6. Whether numeric columns should be scaled, and which method fits
    the data (standard scaling by default, minmax if bounded,
    robust if heavy outliers).
-6. Your reasoning.
+7. Your reasoning.
 
 Return ONLY the structured output.
 """

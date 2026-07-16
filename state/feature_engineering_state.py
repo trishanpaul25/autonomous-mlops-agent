@@ -17,6 +17,11 @@ class FeatureEngineeringState(BaseState):
     # Whether feature engineering completed successfully
     is_completed: bool = False
 
+    # New columns created (e.g. extracted title, family size), in order applied
+    derived_features: list[str] = Field(
+        default_factory=list
+    )
+
     # Columns dropped (ids, constant columns, user/LLM specified, etc.)
     dropped_columns: list[str] = Field(
         default_factory=list
