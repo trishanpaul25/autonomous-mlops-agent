@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = 100  # MB
 
     LOG_LEVEL: str = "INFO"
+
+    #database
+    DATABASE_URL: str
     
     ALLOWED_EXTENSIONS: list[FileType] = [
         FileType.CSV,
@@ -20,7 +23,11 @@ class Settings(BaseSettings):
         FileType.ZIP
     ]
 
-    model_config = SettingsConfigDict(extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 

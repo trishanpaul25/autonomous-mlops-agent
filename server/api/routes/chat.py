@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from server.dependencies import orchestration_service
 from server.schemas import ChatRequest, ChatResponse
@@ -8,7 +8,11 @@ from server.schemas.chat import (
     ModelSelectionResult,
     ModelTrainingResult,
 )
-from server.services.dataset_registry import dataset_registry
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from server.db.session import get_db
+from server.repositories.dataset_repository import DatasetRepository
 
 from state.pipeline_state import PipelineState
 
@@ -19,23 +23,32 @@ router = APIRouter(
 
 
 @router.post("/", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(
+    request: ChatRequest,
+    db: Session = Depends(get_db),
+    ):
 
     dataset = None
 
     if request.dataset_id:
-        dataset = dataset_registry.get_dataset(
-            request.dataset_id
-        )
+        repository = DatasetRepository(db)
+
+        dataset = repository.get_by_id(request.dataset_id)
+
+        if dataset is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Dataset not found."
+            )
 
     state = PipelineState(
         user_prompt=request.prompt
     )
 
     if dataset:
-        state.dataset.dataset_path = dataset["dataset_path"]
-        state.dataset.dataset_name = dataset["dataset_name"]
-        state.dataset.source_type = dataset["source_type"]
+        state.dataset.dataset_path = dataset.dataset_path
+        state.dataset.dataset_name = dataset.dataset_name
+        state.dataset.source_type = dataset.source_type
 
         state.logs.append("Uploaded dataset detected.")
 

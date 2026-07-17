@@ -8,7 +8,7 @@ from uuid import uuid4
 from fastapi import UploadFile
 
 from server.core.paths import UPLOAD_DIR
-from server.services.dataset_registry import dataset_registry
+#from server.services.dataset_registry import dataset_registry
 
 class UploadService:
     """
@@ -17,7 +17,7 @@ class UploadService:
 
     async def save_file(self, file: UploadFile) -> dict:
         # Preserve original extension
-        extension = Path(file.filename).suffix
+        extension = Path(file.filename).suffix.lower()
 
         # Unique filename
         dataset_id = str(uuid4())
@@ -37,7 +37,7 @@ class UploadService:
         with open(destination, "wb") as f:
             f.write(contents)
 
-        extension = Path(file.filename).suffix.lower()
+        #extension = Path(file.filename).suffix.lower()
 
         source_map = {
             ".csv": "csv",
