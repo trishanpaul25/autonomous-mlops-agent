@@ -5,6 +5,7 @@ from sqlalchemy import Text
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import ForeignKey
 
+from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
 
 from server.db.database import Base
@@ -17,6 +18,8 @@ class TrainedModel(Base):
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
+        nullable=False,
+        default=uuid4,
     )
 
     run_id = Column(

@@ -3,7 +3,7 @@ State used by Dataset Resolver and Data Ingestion Agent.
 """
 
 from typing import Any
-
+from uuid import UUID #add on to generate dataset id
 import pandas as pd
 from pydantic import Field
 
@@ -16,7 +16,8 @@ class DatasetState(BaseState):
     """
     source_type: str | None = None
     dataset_name: str | None = None
-
+    dataset_id: UUID | None = None
+    
     # Original uploaded/downloaded dataset
     dataset_path: str | None = None
 

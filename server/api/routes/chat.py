@@ -46,6 +46,7 @@ async def chat(
     )
 
     if dataset:
+        state.dataset.dataset_id = dataset.id      # <-- ADD THIS
         state.dataset.dataset_path = dataset.dataset_path
         state.dataset.dataset_name = dataset.dataset_name
         state.dataset.source_type = dataset.source_type

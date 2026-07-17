@@ -1,3 +1,5 @@
 from .dataset_repository import DatasetRepository
-from .pipeline_repository import PipelineRepository
-from .model_repository import ModelRepository
+from .pipeline_run_repository import PipelineRunRepository
+from .pipeline_log_repository import PipelineLogRepository
+from .trained_model_repository import TrainedModelRepository
+from .deployment_repository import DeploymentRepository
