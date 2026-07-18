@@ -3,4 +3,6 @@ from .dataset import Dataset
 from .pipeline_run import PipelineRun
 from .pipeline_log import PipelineLog
 from .trained_model import TrainedModel
+from .model_registry import ModelRegistry
+from .monitoring import Monitoring
 from .deployment import Deployment

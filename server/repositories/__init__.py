@@ -2,4 +2,6 @@ from .dataset_repository import DatasetRepository
 from .pipeline_run_repository import PipelineRunRepository
 from .pipeline_log_repository import PipelineLogRepository
 from .trained_model_repository import TrainedModelRepository
+from .model_registry_repository import ModelRegistryRepository
+from .monitoring_repository import MonitoringRepository
 from .deployment_repository import DeploymentRepository
