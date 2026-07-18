@@ -4,7 +4,7 @@ from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import ForeignKey
-
+from sqlalchemy.sql  import func
 from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -25,9 +25,10 @@ class TrainedModel(Base):
     run_id = Column(
         UUID(as_uuid=True),
         ForeignKey("pipeline_runs.id"),
+        nullable=False,
     )
 
-    model_name = Column(String)
+    model_name = Column(String, nullable=False,)
 
     model_path = Column(Text)
 
@@ -39,4 +40,4 @@ class TrainedModel(Base):
 
     f1_score = Column(Float)
 
-    created_at = Column(TIMESTAMP)
+    created_at = Column(TIMESTAMP, server_default=func.now(),)

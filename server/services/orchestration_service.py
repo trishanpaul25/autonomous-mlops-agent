@@ -10,10 +10,11 @@ from sqlalchemy.orm import Session
 from server.db.database import SessionLocal
 from server.models.pipeline_run import PipelineRun
 from server.models.pipeline_log import PipelineLog
+from server.models.trained_model import TrainedModel
 
 from server.repositories.pipeline_run_repository import PipelineRunRepository
 from server.repositories.pipeline_log_repository import PipelineLogRepository
-
+from server.repositories.trained_model_repository import TrainedModelRepository
 
 class OrchestrationService:
     """
@@ -28,6 +29,7 @@ class OrchestrationService:
         db: Session = SessionLocal()
         pipeline_run_repository = PipelineRunRepository(db)
         pipeline_log_repository = PipelineLogRepository(db)
+        trained_model_repository = TrainedModelRepository(db)
 
         pipeline_run = PipelineRun(
             id=state.run_id,
@@ -78,6 +80,34 @@ class OrchestrationService:
 
         pipeline_run_repository.update(pipeline_run)
 
+
+        comparison_lookup = {
+            model["model_name"]: model
+            for model in result.model_evaluation.comparison_table
+        }
+
+        trained_models = []
+
+        for trained in result.model_training.trained_models:
+
+            metrics = comparison_lookup.get(
+                trained["model_name"],
+                {},
+            )
+
+            trained_models.append(
+                TrainedModel(
+                    run_id=result.run_id,
+                    model_name=trained["model_name"],
+                    model_path=trained["model_identifier"],
+                    accuracy=metrics.get("accuracy"),
+                    precision=metrics.get("precision"),
+                    recall=metrics.get("recall"),
+                    f1_score=metrics.get("f1"),
+                )
+            )
+
+        trained_model_repository.create_many(trained_models)
 
         logs = [
             PipelineLog(
