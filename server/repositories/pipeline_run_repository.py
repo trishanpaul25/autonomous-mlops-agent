@@ -30,12 +30,17 @@ class PipelineRunRepository:
             .first()
         )
 
-    def get_all(self) -> list[PipelineRun]:
+    def get_by_user_id(
+        self,
+        user_id: UUID,
+    ) -> list[PipelineRun]:
         """
-        Fetch all pipeline runs ordered by newest first.
+        Fetch all pipeline runs belonging to a user.
         """
+
         return (
             self.db.query(PipelineRun)
+            .filter(PipelineRun.user_id == user_id)
             .order_by(PipelineRun.started_at.desc())
             .all()
         )

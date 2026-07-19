@@ -38,6 +38,7 @@ class OrchestrationService:
 
             pipeline_run = PipelineRun(
                 id=state.run_id,
+                user_id=state.user_id,
                 dataset_id=state.dataset.dataset_id,
                 user_prompt=state.user_prompt,
                 assistant_message=None,

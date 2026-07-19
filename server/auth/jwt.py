@@ -34,7 +34,7 @@ def create_access_token(
     )
 
 
-def decode_access_token(token: str) -> dict[str, Any] | None:
+def verify_access_token(token: str) -> dict[str, Any] | None:
     """
     Decode and validate a JWT token.
 

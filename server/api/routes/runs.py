@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from uuid import UUID
+from server.models.user import User
+
+from server.auth.dependencies import get_current_user
 
 from server.db.session import get_db
 
@@ -29,11 +32,12 @@ router = APIRouter(
 )
 def get_pipeline_runs(
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
 
     repository = PipelineRunRepository(db)
 
-    return repository.get_all()
+    return repository.get_by_user_id(current_user.id)
 
 
 @router.get(
@@ -43,6 +47,7 @@ def get_pipeline_runs(
 def get_pipeline_run(
     run_id: UUID,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     pipeline_repository = PipelineRunRepository(db)
     dataset_repository = DatasetRepository(db)
@@ -64,6 +69,13 @@ def get_pipeline_run(
             status_code=404,
             detail="Pipeline run not found."
         )
+
+    if run.user_id != current_user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="You are not allowed to access this run."
+        )
+
 
     return RunDetailsResponse(
         run=run,

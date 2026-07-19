@@ -11,6 +11,7 @@ from .model_training_state import ModelTrainingState
 from .hyperparameter_optimization_state import HyperparameterOptimizationState
 from .model_evaluation_state import ModelEvaluationState
 from .pipeline_state import PipelineState
+from .model_registry_state import ModelRegistryState
 
 __all__ = [
     "BaseState",
@@ -22,4 +23,5 @@ __all__ = [
     "HyperparameterOptimizationState",
     "ModelEvaluationState",
     "PipelineState",
+    "ModelRegistryState",
 ]

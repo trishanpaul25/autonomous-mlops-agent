@@ -19,6 +19,12 @@ class PipelineRun(Base):
         primary_key=True,
     )
 
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=False,
+    )
+
     dataset_id = Column(
         UUID(as_uuid=True),
         ForeignKey("datasets.id"),

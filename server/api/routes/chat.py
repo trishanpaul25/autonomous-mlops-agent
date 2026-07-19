@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from server.auth.dependencies import get_current_user
+from server.models.user import User
+
 
 from server.dependencies import orchestration_service
 from server.schemas import ChatRequest, ChatResponse
@@ -26,6 +29,7 @@ router = APIRouter(
 async def chat(
     request: ChatRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
     ):
 
     dataset = None
@@ -42,7 +46,8 @@ async def chat(
             )
 
     state = PipelineState(
-        user_prompt=request.prompt
+        user_prompt=request.prompt,
+        user_id=str(current_user.id)
     )
 
     if dataset:

@@ -15,6 +15,8 @@ from server.models.dataset import Dataset
 from server.repositories.dataset_repository import DatasetRepository
 from server.schemas import UploadResponse
 from server.services.upload_service import upload_service
+from server.models.user import User
+from server.auth.dependencies import get_current_user
 
 router = APIRouter(
     prefix="/upload",
@@ -26,6 +28,7 @@ router = APIRouter(
 async def upload_dataset(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     extension = "." + file.filename.split(".")[-1].lower()
 

@@ -20,6 +20,7 @@ class PipelineState(BaseState):
     """Shared state that flows through the complete LangGraph pipeline."""
 
     user_prompt: str = ""
+    user_id: str | None = None
     project_id: str | None = None
     session_id: str | None = None
     run_id: str = Field(
