@@ -124,6 +124,53 @@ def main():
         logger.info("Narrative: %s", ev.narrative)
     logger.info("Summary: %s", ev.summary)
 
+    _section("EXPLAINABILITY")
+    ex = result.explainability
+    logger.info("Explainability status: %s", ex.explainability_status)
+    logger.info("Task type: %s", ex.task_type)
+    logger.info(
+        "Techniques computed — SHAP: %s (%s) | Permutation: %s | Native: %s | "
+        "Coefficient: %s | Partial dependence: %s",
+        ex.shap_computed, ex.shap_explainer_type,
+        ex.permutation_computed, ex.native_importance_computed,
+        ex.coefficient_computed, ex.partial_dependence_computed,
+    )
+    if ex.skipped_methods:
+        logger.info("Skipped/fallback methods:")
+        for method, reason in ex.skipped_methods.items():
+            logger.info("  [SKIPPED] %s — %s", method, reason)
+    if ex.feature_ranking:
+        logger.info("Top features (unified ranking):")
+        for row in ex.feature_ranking[:10]:
+            logger.info(
+                "  #%d %s — overall_score=%.4f",
+                row.get("overall_rank", 0),
+                row.get("feature_name"),
+                row.get("overall_score", 0.0),
+            )
+    if ex.global_explanation:
+        logger.info("Global explanation: %s", ex.global_explanation.get("summary"))
+    if ex.local_explanations:
+        logger.info("Local explanations (%d):", len(ex.local_explanations))
+        for le in ex.local_explanations:
+            logger.info(
+                "  Sample %s — predicted=%s — %s",
+                le.get("sample_index"), le.get("predicted_value"),
+                le.get("prediction_explanation"),
+            )
+    if ex.technical_explanation:
+        logger.info("Technical explanation: %s", ex.technical_explanation)
+    if ex.business_explanation:
+        logger.info("Business explanation: %s", ex.business_explanation)
+    if ex.non_technical_explanation:
+        logger.info("Non-technical explanation: %s", ex.non_technical_explanation)
+    if ex.warnings:
+        logger.info("Warnings: %s", ex.warnings)
+    if ex.errors:
+        logger.info("Errors: %s", ex.errors)
+    logger.info("Total explainability time: %.2fs", ex.total_execution_time_seconds)
+    logger.info("Summary: %s", ex.summary)
+
 
 if __name__ == "__main__":
     main()

@@ -11,6 +11,7 @@ from agents.model_selection_agent import ModelSelectionAgent
 from agents.model_training_agent import ModelTrainingAgent
 from agents.hyperparameter_optimization_agent import HyperparameterOptimizationAgent
 from agents.model_evaluation_agent import ModelEvaluationAgent
+from agents.explainability_agent import ExplainabilityAgent
 from server.core.constants import PipelineStatus
 
 from state.pipeline_state import PipelineState
@@ -29,11 +30,13 @@ class MasterOrchestratorAgent(BaseAgent):
             "model_training":              ModelTrainingAgent(),
             "hyperparameter_optimization": HyperparameterOptimizationAgent(),
             "model_evaluation":            ModelEvaluationAgent(),
+            "explainability":              ExplainabilityAgent(),
         }
         self.execution_order = [
             "dataset_resolver", "data_ingestion", "validation",
             "feature_engineering", "model_selection", "model_training",
             "hyperparameter_optimization", "model_evaluation",
+            "explainability",
         ]
 
     def run(self, state: PipelineState) -> PipelineState:
@@ -64,6 +67,24 @@ class MasterOrchestratorAgent(BaseAgent):
                     agent_name,
                 )
                 return state
+
+            # ExplainabilityAgent never touches state.status (a failed or
+            # skipped explanation shouldn't halt the pipeline the way a
+            # broken train/test split would), so it can't trip the
+            # PipelineStatus.FAILED check above. Surface it as a visible,
+            # non-blocking warning instead of letting it fail silently.
+            if agent_name == "explainability":
+                ex_status = getattr(state.explainability, "explainability_status", None)
+                if ex_status == "failed":
+                    logger.warning(
+                        "Explainability step failed (pipeline continuing): %s",
+                        getattr(state.explainability, "errors", None),
+                    )
+                elif ex_status == "skipped":
+                    logger.info(
+                        "Explainability step skipped: %s",
+                        getattr(state.explainability, "warnings", None),
+                    )
 
         state.status = PipelineStatus.SUCCESS
 

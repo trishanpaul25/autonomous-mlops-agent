@@ -15,6 +15,7 @@ from agents import (
     HyperparameterOptimizationAgent,
     ModelEvaluationAgent,
     MasterOrchestratorAgent,
+    ExplainabilityAgent,
 )
 from state.pipeline_state import PipelineState
 
@@ -37,3 +38,4 @@ model_training_node              = _make_node(ModelTrainingAgent)
 hyperparameter_optimization_node = _make_node(HyperparameterOptimizationAgent)
 model_evaluation_node            = _make_node(ModelEvaluationAgent)
 master_orchestrator_node         = _make_node(MasterOrchestratorAgent)
+explainability_node              = _make_node(ExplainabilityAgent)
