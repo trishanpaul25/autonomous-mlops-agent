@@ -30,6 +30,16 @@ class PipelineRunRepository:
             .first()
         )
 
+    def get_all(self) -> list[PipelineRun]:
+        """
+        Fetch all pipeline runs ordered by newest first.
+        """
+        return (
+            self.db.query(PipelineRun)
+            .order_by(PipelineRun.started_at.desc())
+            .all()
+        )
+
     def update(
         self,
         pipeline_run: PipelineRun,

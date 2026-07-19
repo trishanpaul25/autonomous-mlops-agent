@@ -36,6 +36,7 @@ class PipelineLogRepository:
 
         return (
             self.db.query(PipelineLog)
-            .filter(PipelineLog.pipeline_run_id == run_id)
+            .filter(PipelineLog.run_id == run_id)
+            .order_by(PipelineLog.created_at.asc())
             .all()
         )
