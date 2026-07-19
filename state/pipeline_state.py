@@ -15,6 +15,7 @@ from .hyperparameter_optimization_state import HyperparameterOptimizationState
 from .model_evaluation_state import ModelEvaluationState
 from .explainability_state import ExplainabilityState
 from .model_registry_state import ModelRegistryState
+from .deployment_state import DeploymentState
 from server.core.constants import PipelineStatus
 class PipelineState(BaseState):
     """Shared state that flows through the complete LangGraph pipeline."""
@@ -61,6 +62,9 @@ class PipelineState(BaseState):
     )
     model_registry: ModelRegistryState = Field(
         default_factory=ModelRegistryState
+    )
+    deployment: DeploymentState = Field(
+        default_factory=DeploymentState
     )
     current_agent: str = ""
     completed_steps: list[str] = Field(default_factory=list)
