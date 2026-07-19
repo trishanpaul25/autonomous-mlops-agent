@@ -2,6 +2,8 @@
 Master Orchestrator Agent — coordinates all pipeline agents in sequence.
 """
 
+import os
+
 from agents.base_agent import BaseAgent
 from agents.dataset_resolver_agent import DatasetResolverAgent
 from agents.data_ingestion_agent import DataIngestionAgent
@@ -11,7 +13,8 @@ from agents.model_selection_agent import ModelSelectionAgent
 from agents.model_training_agent import ModelTrainingAgent
 from agents.hyperparameter_optimization_agent import HyperparameterOptimizationAgent
 from agents.model_evaluation_agent import ModelEvaluationAgent
-from agents.explainability_agent import ExplainabilityAgent
+from agents.explainability_agent import ExplainabilityAgent, LangChainLLMAdapter
+from agents.model_registry_agent import ModelRegistryAgent
 from server.core.constants import PipelineStatus
 
 from state.pipeline_state import PipelineState
@@ -21,6 +24,19 @@ from utils.logger import logger
 class MasterOrchestratorAgent(BaseAgent):
 
     def __init__(self):
+        # ExplainabilityAgent takes its LLM client injected (rather than
+        # resolving it internally like the other agents), so we build it
+        # here using the same GOOGLE_API_KEY/GEMINI_API_KEY auto-detection
+        # convention the rest of the pipeline follows. LLMService.get_llm()
+        # returns a plain (non-structured-output) chat model, which is what
+        # LangChainLLMAdapter's .generate(prompt) -> str contract needs —
+        # get_structured_llm() would be wrong here since narration is free
+        # text, not a Pydantic schema.
+        explainability_llm_client = None
+        if os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"):
+            from services.llm_service import LLMService
+            explainability_llm_client = LangChainLLMAdapter(LLMService.get_llm())
+
         self.agents = {
             "dataset_resolver":            DatasetResolverAgent(),
             "data_ingestion":              DataIngestionAgent(),
@@ -30,13 +46,14 @@ class MasterOrchestratorAgent(BaseAgent):
             "model_training":              ModelTrainingAgent(),
             "hyperparameter_optimization": HyperparameterOptimizationAgent(),
             "model_evaluation":            ModelEvaluationAgent(),
-            "explainability":              ExplainabilityAgent(),
+            "explainability":              ExplainabilityAgent(llm_client=explainability_llm_client),
+            "model_registry":              ModelRegistryAgent(),
         }
         self.execution_order = [
             "dataset_resolver", "data_ingestion", "validation",
             "feature_engineering", "model_selection", "model_training",
             "hyperparameter_optimization", "model_evaluation",
-            "explainability",
+            "explainability", "model_registry",
         ]
 
     def run(self, state: PipelineState) -> PipelineState:
@@ -84,6 +101,29 @@ class MasterOrchestratorAgent(BaseAgent):
                     logger.info(
                         "Explainability step skipped: %s",
                         getattr(state.explainability, "warnings", None),
+                    )
+
+            # ModelRegistryAgent also never touches state.status for the
+            # same reason (a registration failure shouldn't block a
+            # pipeline that otherwise produced a perfectly good model).
+            if agent_name == "model_registry":
+                reg_status = getattr(state.model_registry, "registry_status", None)
+                if reg_status == "failed":
+                    logger.warning(
+                        "Model registration failed (pipeline continuing): %s",
+                        getattr(state.model_registry, "errors", None),
+                    )
+                elif reg_status == "skipped":
+                    logger.info(
+                        "Model registration skipped: %s",
+                        getattr(state.model_registry, "warnings", None),
+                    )
+                elif reg_status == "completed":
+                    logger.info(
+                        "Model registered: %s v%s (%s)",
+                        state.model_registry.registered_model_name,
+                        state.model_registry.model_version,
+                        state.model_registry.mlflow_model_uri,
                     )
 
         state.status = PipelineStatus.SUCCESS

@@ -80,3 +80,51 @@ class FeatureEngineeringState(BaseState):
 
     # Summary of feature engineering
     summary: str | None = None
+
+    # ------------------------------------------------------------
+    # NEW: reproducibility fields, added for the Model Registry Agent.
+    #
+    # Everything above this point describes WHAT happened. The fields
+    # below capture the actual fitted artifacts needed to REPLAY the
+    # same pipeline on brand-new raw data at inference time — without
+    # them, a registered model can only ever be applied to data that's
+    # already been through an identical hand-run of this tool, which
+    # isn't useful for real deployment.
+    #
+    # All fitted objects (scaler, encoder) are stored as the actual
+    # sklearn objects, not a serialized summary — BaseState already
+    # sets arbitrary_types_allowed=True for exactly this reason (see
+    # HyperparameterOptimizationState.optimized_model_objects for the
+    # same pattern with fitted estimators).
+    # ------------------------------------------------------------
+
+    # The original FeatureEngineeringOutput config (derived_features specs,
+    # drop_columns, missing/outlier/encoding/scaling strategy choices),
+    # stored as a plain dict via .model_dump(). Needed to replay the
+    # row-wise steps (derive, drop) that don't have "fitted state" of
+    # their own — they're just deterministic functions of the config.
+    config: dict[str, Any] | None = None
+
+    # {column_name: fill_value} — computed from the TRAIN split only.
+    fitted_imputation_values: dict[str, Any] = Field(default_factory=dict)
+
+    # {column_name: [lower_bound, upper_bound]} — computed from TRAIN only.
+    fitted_outlier_bounds: dict[str, list[float]] = Field(default_factory=dict)
+
+    # The fitted sklearn OneHotEncoder instance (encoding_method == "onehot"),
+    # or None if label encoding or no encoding was used.
+    fitted_onehot_encoder: Any | None = None
+
+    # Ordered list of columns the OneHotEncoder was fit on (needed to feed
+    # columns to encoder.transform() in the exact fitted order).
+    onehot_encoded_columns: list[str] = Field(default_factory=list)
+
+    # {column_name: {category_value: code, ..., "__unseen__": fallback_code}}
+    # — used when encoding_method == "label" instead of a sklearn object,
+    # since the tool implements label encoding by hand (see
+    # feature_engineering_tool.py's _encode_categorical).
+    fitted_label_encoding_maps: dict[str, dict[str, int]] = Field(default_factory=dict)
+
+    # The fitted sklearn scaler instance (StandardScaler / MinMaxScaler /
+    # RobustScaler), or None if scaling was not applied.
+    fitted_scaler: Any | None = None
