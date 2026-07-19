@@ -27,5 +27,6 @@ class ModelRegistryRepository:
         return (
             self.db.query(ModelRegistry)
             .filter(ModelRegistry.run_id == run_id)
-            .all()
+            #.all()
+            .first()
         )

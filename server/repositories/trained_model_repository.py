@@ -39,6 +39,16 @@ class TrainedModelRepository:
             .filter(TrainedModel.id == model_id)
             .first()
         )
+    
+    def get_by_run_id(self, run_id: UUID) -> list[TrainedModel]:
+        """
+        Fetch all trained models for a pipeline run.
+        """
+        return (
+            self.db.query(TrainedModel)
+            .filter(TrainedModel.run_id == run_id)
+            .all()
+        )
 
     def update(self, trained_model: TrainedModel) -> TrainedModel:
         self.db.commit()
