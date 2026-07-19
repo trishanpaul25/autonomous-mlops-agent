@@ -171,6 +171,29 @@ def main():
     logger.info("Total explainability time: %.2fs", ex.total_execution_time_seconds)
     logger.info("Summary: %s", ex.summary)
 
+    _section("MODEL REGISTRY")
+    mr = result.model_registry
+    logger.info("Registry status: %s", mr.registry_status)
+    if mr.registry_status == "completed":
+        logger.info(
+            "Registered model: %s v%s", mr.registered_model_name, mr.model_version
+        )
+        logger.info("MLflow run ID: %s", mr.mlflow_run_id)
+        logger.info("Model URI: %s", mr.mlflow_model_uri)
+        logger.info("Run-relative URI: %s", mr.mlflow_run_model_uri)
+        logger.info("Transformers bundled: %s", mr.bundled_transformers)
+        if mr.logged_params:
+            logger.info("Logged params: %s", mr.logged_params)
+        if mr.logged_metrics:
+            logger.info("Logged metrics: %s", mr.logged_metrics)
+    logger.info("Tracking URI used: %s", mr.tracking_uri_used)
+    if mr.warnings:
+        logger.info("Warnings: %s", mr.warnings)
+    if mr.errors:
+        logger.info("Errors: %s", mr.errors)
+    logger.info("Total registry time: %.2fs", mr.total_execution_time_seconds)
+    logger.info("Summary: %s", mr.summary)
+
 
 if __name__ == "__main__":
     main()
