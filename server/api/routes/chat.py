@@ -1,10 +1,14 @@
+from fastapi import UploadFile
+from fastapi import File
+from fastapi import Form
+
 from fastapi import APIRouter, HTTPException, Depends
 from server.auth.dependencies import get_current_user
 from server.models.user import User
 
 
 from server.dependencies import orchestration_service
-from server.schemas import ChatRequest, ChatResponse
+from server.schemas import ChatResponse
 from server.schemas.chat import (
     HyperparameterOptimizationResult,
     ModelEvaluationResult,
@@ -19,6 +23,9 @@ from server.repositories.dataset_repository import DatasetRepository
 
 from state.pipeline_state import PipelineState
 
+from server.services.upload_service import upload_service
+from server.services.dataset_service import DatasetService
+
 router = APIRouter(
     prefix="/chat",
     tags=["Chat"]
@@ -27,12 +34,13 @@ router = APIRouter(
 
 @router.post("/", response_model=ChatResponse)
 async def chat(
-    request: ChatRequest,
+    prompt: str = Form(...),
+    file: UploadFile | None = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
     ):
 
-    dataset = None
+    """dataset = None
 
     if request.dataset_id:
         repository = DatasetRepository(db)
@@ -43,20 +51,38 @@ async def chat(
             raise HTTPException(
                 status_code=404,
                 detail="Dataset not found."
-            )
+            )"""
 
     state = PipelineState(
-        user_prompt=request.prompt,
+        user_prompt=prompt,
         user_id=str(current_user.id)
     )
 
-    if dataset:
+    """if dataset:
         state.dataset.dataset_id = dataset.id      # <-- ADD THIS
         state.dataset.dataset_path = dataset.dataset_path
         state.dataset.dataset_name = dataset.dataset_name
         state.dataset.source_type = dataset.source_type
 
-        state.logs.append("Uploaded dataset detected.")
+        state.logs.append("Uploaded dataset detected.")"""
+    
+    if file:
+
+        upload_info = await upload_service.save_file(file)
+
+        dataset = DatasetService(db).create_uploaded_dataset(
+            current_user,
+            upload_info,
+        )
+
+        state.dataset.dataset_id = str(dataset.id)
+        state.dataset.dataset_name = dataset.dataset_name
+        state.dataset.dataset_path = dataset.dataset_path
+        state.dataset.source_type = dataset.source_type
+
+        state.logs.append(
+            "Uploaded dataset detected."
+        )
 
     result = orchestration_service.run(state)
 

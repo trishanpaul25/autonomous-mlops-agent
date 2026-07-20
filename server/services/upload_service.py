@@ -20,7 +20,7 @@ class UploadService:
         extension = Path(file.filename).suffix.lower()
 
         # Unique filename
-        dataset_id = str(uuid4())
+        dataset_id = uuid4()
 
         filename = f"{dataset_id}{extension}"
 
@@ -47,12 +47,20 @@ class UploadService:
             ".zip": "zip",
         }
 
+        source_type = source_map.get(extension)
+
+        if source_type is None:
+            raise ValueError(
+                f"Unsupported file type: {extension}"
+            )
+
         return {
-            "dataset_id": dataset_id,
+            #"dataset_id": dataset_id,
+            "id": dataset_id,
             "filename": file.filename,
             "dataset_name": Path(file.filename).stem,
             "dataset_path": str(destination),
-            "source_type": source_map.get(extension),
+            "source_type": source_type,
             "file_size": len(contents),
         }
 
