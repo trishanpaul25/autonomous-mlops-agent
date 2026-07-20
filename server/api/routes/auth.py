@@ -11,7 +11,11 @@ from server.schemas import (
     LoginRequest,
     TokenResponse,
     UserResponse,
+    UserProfileResponse,
+    UpdateUserRequest,
+    ChangePasswordRequest,
 )
+from server.repositories.pipeline_run_repository import PipelineRunRepository
 
 from server.services.auth_service import AuthService
 
@@ -82,11 +86,88 @@ def login(
 
 @router.get(
     "/me",
-    response_model=UserResponse,
+    response_model=UserProfileResponse,
 )
 def me(
     current_user: User = Depends(
         get_current_user,
     ),
+    db: Session = Depends(get_db),
 ):
-    return current_user
+    repository = PipelineRunRepository(db)
+
+    return UserProfileResponse(
+        id=current_user.id,
+        username=current_user.username,
+        email=current_user.email,
+        created_at=current_user.created_at,
+
+        total_runs=repository.count_by_user(current_user.id),
+        successful_runs=repository.count_successful(current_user.id),
+        failed_runs=repository.count_failed(current_user.id),
+    )
+
+@router.put(
+    "/me",
+    response_model=UserResponse,
+)
+def update_profile(
+    request: UpdateUserRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    auth_service = AuthService(db)
+
+    try:
+        return auth_service.update_profile(
+            user=current_user,
+            username=request.username,
+            email=request.email,
+        )
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        )
+    
+
+@router.put(
+    "/change-password",
+)
+def change_password(
+    request: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    auth_service = AuthService(db)
+
+    try:
+        auth_service.change_password(
+            user=current_user,
+            current_password=request.current_password,
+            new_password=request.new_password,
+        )
+
+        return {
+            "message": "Password updated successfully."
+        }
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        )
+    
+@router.delete("/me")
+def delete_account(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    auth_service = AuthService(db)
+
+    auth_service.deactivate_account(current_user)
+
+    return {
+        "message": "Account deactivated successfully."
+    }

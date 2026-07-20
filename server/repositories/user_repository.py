@@ -58,3 +58,19 @@ class UserRepository:
         self.db.refresh(user)
 
         return user
+    
+    def deactivate(
+    self,
+    user: User,
+) -> User:
+        """
+        Deactivate a user account.
+        """
+
+        user.is_active = False
+
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+
+        return user

@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from uuid import uuid4
 from server.db.database import Base
 from sqlalchemy.sql import func
-
+from sqlalchemy import Boolean
 class User(Base):
     __tablename__ = "users"
 
@@ -34,3 +34,10 @@ class User(Base):
         server_default=func.now(),
         nullable=False,
     )
+
+    is_active = Column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+)

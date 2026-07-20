@@ -9,3 +9,7 @@ from .auth import (
     TokenResponse,
     UserResponse,
 )
+
+from .user_profile import UserProfileResponse
+from .update_user import UpdateUserRequest
+from .change_password import ChangePasswordRequest

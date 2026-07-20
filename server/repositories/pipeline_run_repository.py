@@ -45,6 +45,47 @@ class PipelineRunRepository:
             .all()
         )
 
+    def count_by_user(
+        self,
+        user_id: UUID,
+    ) -> int:
+
+        return (
+            self.db.query(PipelineRun)
+            .filter(PipelineRun.user_id == user_id)
+            .count()
+        )
+
+
+    def count_successful(
+        self,
+        user_id: UUID,
+    ) -> int:
+
+        return (
+            self.db.query(PipelineRun)
+            .filter(
+                PipelineRun.user_id == user_id,
+                PipelineRun.status == "SUCCESS",
+            )
+            .count()
+        )
+
+
+    def count_failed(
+    self,
+    user_id: UUID,
+) -> int:
+
+        return (
+            self.db.query(PipelineRun)
+            .filter(
+                PipelineRun.user_id == user_id,
+                PipelineRun.status == "FAILED",
+            )
+            .count()
+        )
+
     def update(
         self,
         pipeline_run: PipelineRun,
