@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from sqlalchemy import Column
 from sqlalchemy import String
 from sqlalchemy import Text
@@ -16,6 +18,8 @@ class Deployment(Base):
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
+        nullable=False,
+        default=uuid4,
     )
 
     model_id = Column(

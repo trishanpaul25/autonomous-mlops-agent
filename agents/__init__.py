@@ -10,6 +10,8 @@ from .model_training_agent import ModelTrainingAgent
 from .hyperparameter_optimization_agent import HyperparameterOptimizationAgent
 from .model_evaluation_agent import ModelEvaluationAgent
 from .explainability_agent import ExplainabilityAgent
+from .model_registry_agent import ModelRegistryAgent
+from .deployment_agent import DeploymentAgent
 from .master_orchestrator_agent import MasterOrchestratorAgent
 
 __all__ = [
@@ -23,5 +25,7 @@ __all__ = [
     "HyperparameterOptimizationAgent",
     "ModelEvaluationAgent",
     "ExplainabilityAgent",
+    "ModelRegistryAgent",
+    "DeploymentAgent",
     "MasterOrchestratorAgent",
 ]

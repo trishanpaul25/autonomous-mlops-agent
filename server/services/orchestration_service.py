@@ -12,11 +12,13 @@ from server.models.pipeline_run import PipelineRun
 from server.models.pipeline_log import PipelineLog
 from server.models.trained_model import TrainedModel
 from server.models.model_registry import ModelRegistry
+from server.models.deployment import Deployment
 
 from server.repositories.pipeline_run_repository import PipelineRunRepository
 from server.repositories.pipeline_log_repository import PipelineLogRepository
 from server.repositories.trained_model_repository import TrainedModelRepository
 from server.repositories.model_registry_repository import ModelRegistryRepository
+from server.repositories.deployment_repository import DeploymentRepository
 
 class OrchestrationService:
     """
@@ -34,6 +36,7 @@ class OrchestrationService:
             pipeline_log_repository = PipelineLogRepository(db)
             trained_model_repository = TrainedModelRepository(db)
             model_registry_repository = ModelRegistryRepository(db)
+            deployment_repository = DeploymentRepository(db)
 
 
             pipeline_run = PipelineRun(
@@ -137,6 +140,25 @@ class OrchestrationService:
                 )
 
                 model_registry_repository.create(best_model)
+
+                if result.deployment.deployment_status == "completed" and best_identifier:
+                    matching_trained_model = next(
+                        (
+                            trained_model for trained_model in trained_models
+                            if trained_model.model_path == best_identifier
+                        ),
+                        None,
+                    )
+
+                    if matching_trained_model is not None:
+                        deployment_record = Deployment(
+                            model_id=matching_trained_model.id,
+                            endpoint=result.deployment.endpoint,
+                            status=result.deployment.deployment_status,
+                            deployed_at=datetime.now(),
+                        )
+
+                        deployment_repository.create(deployment_record)
 
             logs = [
                 PipelineLog(
