@@ -15,6 +15,7 @@ from agents.hyperparameter_optimization_agent import HyperparameterOptimizationA
 from agents.model_evaluation_agent import ModelEvaluationAgent
 from agents.explainability_agent import ExplainabilityAgent, LangChainLLMAdapter
 from agents.model_registry_agent import ModelRegistryAgent
+from agents.deployment_agent import DeploymentAgent
 from server.core.constants import PipelineStatus
 
 from state.pipeline_state import PipelineState
@@ -48,12 +49,13 @@ class MasterOrchestratorAgent(BaseAgent):
             "model_evaluation":            ModelEvaluationAgent(),
             "explainability":              ExplainabilityAgent(llm_client=explainability_llm_client),
             "model_registry":              ModelRegistryAgent(),
+            "deployment":                  DeploymentAgent(),
         }
         self.execution_order = [
             "dataset_resolver", "data_ingestion", "validation",
             "feature_engineering", "model_selection", "model_training",
             "hyperparameter_optimization", "model_evaluation",
-            "explainability", "model_registry",
+            "explainability", "model_registry", "deployment",
         ]
 
     def run(self, state: PipelineState) -> PipelineState:
@@ -124,6 +126,28 @@ class MasterOrchestratorAgent(BaseAgent):
                         state.model_registry.registered_model_name,
                         state.model_registry.model_version,
                         state.model_registry.mlflow_model_uri,
+                    )
+
+            # DeploymentAgent also never touches state.status for the same
+            # reason (a deployment failure shouldn't block a pipeline that
+            # otherwise produced and registered a perfectly good model).
+            if agent_name == "deployment":
+                dep_status = getattr(state.deployment, "deployment_status", None)
+                if dep_status == "failed":
+                    logger.warning(
+                        "Deployment failed (pipeline continuing): %s",
+                        getattr(state.deployment, "errors", None),
+                    )
+                elif dep_status == "skipped":
+                    logger.info(
+                        "Deployment skipped: %s",
+                        getattr(state.deployment, "warnings", None),
+                    )
+                elif dep_status == "completed":
+                    logger.info(
+                        "Model deployed: %s (%s)",
+                        state.deployment.model_uri,
+                        state.deployment.endpoint,
                     )
 
         state.status = PipelineStatus.SUCCESS
