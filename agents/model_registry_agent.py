@@ -176,7 +176,7 @@ class ModelRegistryAgent(BaseAgent):
 
                     mlflow.pyfunc.log_model(
                         python_model=python_model,
-                        artifact_path=_MODEL_ARTIFACT_PATH,
+                        name=_MODEL_ARTIFACT_PATH,
                     )
 
                     run_id = run.info.run_id
