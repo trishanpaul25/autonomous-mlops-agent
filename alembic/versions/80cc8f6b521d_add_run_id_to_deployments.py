@@ -18,19 +18,30 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
+from sqlalchemy import inspect
+
 def upgrade() -> None:
-    """Upgrade schema."""
-    op.add_column(
-        'deployments',
-        sa.Column('run_id', postgresql.UUID(as_uuid=True), nullable=True),
-    )
-    op.create_foreign_key(
-        'fk_deployments_run_id_pipeline_runs',
-        'deployments',
-        'pipeline_runs',
-        ['run_id'],
-        ['id'],
-    )
+    bind = op.get_bind()
+    inspector = inspect(bind)
+
+    columns = [c["name"] for c in inspector.get_columns("deployments")]
+
+    if "run_id" not in columns:
+        op.add_column(
+            "deployments",
+            sa.Column("run_id", postgresql.UUID(as_uuid=True), nullable=True),
+        )
+
+    fks = [fk["name"] for fk in inspector.get_foreign_keys("deployments")]
+
+    if "fk_deployments_run_id_pipeline_runs" not in fks:
+        op.create_foreign_key(
+            "fk_deployments_run_id_pipeline_runs",
+            "deployments",
+            "pipeline_runs",
+            ["run_id"],
+            ["id"],
+        )
 
 
 def downgrade() -> None:
