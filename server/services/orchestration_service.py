@@ -159,6 +159,7 @@ class OrchestrationService:
                     if matching_trained_model is not None:
                         deployment_record = Deployment(
                             model_id=matching_trained_model.id,
+                            run_id=result.run_id,
                             endpoint=result.deployment.endpoint,
                             status=result.deployment.deployment_status,
                             deployed_at=datetime.now(),

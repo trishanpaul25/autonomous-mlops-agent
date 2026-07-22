@@ -27,6 +27,17 @@ class Deployment(Base):
         ForeignKey("trained_models.id"),
     )
 
+    # The pipeline run_id — what ModelServerRegistry keys models by and
+    # what actually appears in the live /predict/{deployment_id} URL
+    # (see agents/deployment_agent.py, which sets deployment_id =
+    # state.run_id). This is NOT the same value as `id` above. Without
+    # this column, there was no way to go from a live request back to
+    # this row — predict.py only ever knows run_id, never `id`.
+    run_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("pipeline_runs.id"),
+    )
+
     endpoint = Column(Text)
 
     status = Column(String)
