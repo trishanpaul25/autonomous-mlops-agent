@@ -17,6 +17,8 @@ from server.models.trained_model import TrainedModel
 from server.models.model_registry import ModelRegistry
 from server.models.monitoring import Monitoring
 from server.models.deployment import Deployment
+from server.models.dataset_snapshot import DatasetSnapshot
+from server.models.prediction_log import PredictionLog
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

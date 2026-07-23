@@ -30,5 +30,18 @@ class DeploymentRepository:
             .first()
         )
 
+    def get_by_run_id(self, run_id: UUID) -> Deployment | None:
+        """
+        Fetch deployment by pipeline run_id — this is the value that
+        actually appears in live /predict/{deployment_id} requests, so
+        this is how request-time code (predict.py) resolves the real
+        `deployments.id` row to log or monitor against.
+        """
+        return (
+            self.db.query(Deployment)
+            .filter(Deployment.run_id == run_id)
+            .first()
+        )
+
     def update(self) -> None:
         self.db.commit()

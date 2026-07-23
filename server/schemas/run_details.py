@@ -3,6 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 from server.schemas.pipeline_run import PipelineRunSummary
+from server.schemas.deployment import DeploymentResponse
 class DatasetResponse(BaseModel):
 
     id: UUID
@@ -62,3 +63,4 @@ class RunDetailsResponse(BaseModel):
     logs: list[PipelineLogResponse]
     trained_models: list[TrainedModelResponse]
     registry: ModelRegistryResponse | None
+    deployment: DeploymentResponse | None = None

@@ -6,3 +6,5 @@ from .trained_model import TrainedModel
 from .model_registry import ModelRegistry
 from .monitoring import Monitoring
 from .deployment import Deployment
+from .dataset_snapshot import DatasetSnapshot
+from .prediction_log import PredictionLog

@@ -13,12 +13,17 @@ from server.models.pipeline_log import PipelineLog
 from server.models.trained_model import TrainedModel
 from server.models.model_registry import ModelRegistry
 from server.models.deployment import Deployment
+from server.models.dataset_snapshot import DatasetSnapshot
 
 from server.repositories.pipeline_run_repository import PipelineRunRepository
 from server.repositories.pipeline_log_repository import PipelineLogRepository
 from server.repositories.trained_model_repository import TrainedModelRepository
 from server.repositories.model_registry_repository import ModelRegistryRepository
 from server.repositories.deployment_repository import DeploymentRepository
+from server.repositories.dataset_snapshot_repository import DatasetSnapshotRepository
+
+from tools.monitoring.dataset_snapshot_builder import DatasetSnapshotBuilder
+from utils.logger import logger
 
 class OrchestrationService:
     """
@@ -37,6 +42,7 @@ class OrchestrationService:
             trained_model_repository = TrainedModelRepository(db)
             model_registry_repository = ModelRegistryRepository(db)
             deployment_repository = DeploymentRepository(db)
+            dataset_snapshot_repository = DatasetSnapshotRepository(db)
 
 
             pipeline_run = PipelineRun(
@@ -153,12 +159,44 @@ class OrchestrationService:
                     if matching_trained_model is not None:
                         deployment_record = Deployment(
                             model_id=matching_trained_model.id,
+                            run_id=result.run_id,
                             endpoint=result.deployment.endpoint,
                             status=result.deployment.deployment_status,
                             deployed_at=datetime.now(),
                         )
 
                         deployment_repository.create(deployment_record)
+
+                        # Capture the training-data reference distribution
+                        # now, while `deployment_record.id` (the FK
+                        # Monitoring/DatasetSnapshot key off) exists and
+                        # the raw dataframe is still in memory. A failure
+                        # here must never take down a successful
+                        # deployment — it just means drift detection has
+                        # nothing to compare against later.
+                        try:
+                            snapshot_payload = DatasetSnapshotBuilder().build(result)
+                            if snapshot_payload is not None:
+                                dataset_snapshot_repository.create(
+                                    DatasetSnapshot(
+                                        deployment_id=deployment_record.id,
+                                        num_rows=snapshot_payload["num_rows"],
+                                        target_column=snapshot_payload["target_column"],
+                                        feature_statistics=snapshot_payload["feature_statistics"],
+                                    )
+                                )
+                            else:
+                                logger.warning(
+                                    "DatasetSnapshot skipped for deployment %s: "
+                                    "no raw dataframe available.",
+                                    deployment_record.id,
+                                )
+                        except Exception as exc:
+                            logger.warning(
+                                "DatasetSnapshot capture failed for deployment %s: %s",
+                                deployment_record.id,
+                                exc,
+                            )
 
             logs = [
                 PipelineLog(
