@@ -45,6 +45,9 @@ from utils.logger import logger
 
 from server.core.constants import PipelineStatus
 
+from server.services.progress_service import ProgressService
+from server.services.progress_types import ProgressEventType
+
 class ModelTrainingAgent(BaseAgent):
     """
     Trains every candidate model recommended by the Model Selection Agent.
@@ -105,6 +108,13 @@ class ModelTrainingAgent(BaseAgent):
             state.current_agent = "ModelTrainingAgent"
 
             logger.info("ModelTrainingAgent: starting.")
+
+            ProgressService.emit(
+                state.run_id,
+                "🧠 Preparing model training...",
+                ProgressEventType.THINKING,
+            )
+
             state.logs.append("Model training started.")
             if not state.model_selection.is_completed:
                 raise ValueError(
@@ -137,6 +147,12 @@ class ModelTrainingAgent(BaseAgent):
                 self.splitter.random_state,
             )
 
+            ProgressService.emit(
+                state.run_id,
+                "✂️ Creating train/test split...",
+                ProgressEventType.STEP,
+            )
+
             state = self.splitter.split(state)
 
             state.logs.append(
@@ -150,8 +166,20 @@ class ModelTrainingAgent(BaseAgent):
                 len(candidates),
             )
 
+            ProgressService.emit(
+                state.run_id,
+                f"🚀 Training {len(candidates)} candidate model(s)...",
+                ProgressEventType.STEP,
+            )
+
             training_results: list[TrainingResult] = self.trainer.train_all(state)
 
+            ProgressService.emit(
+                state.run_id,
+                "📊 Collecting training results...",
+                ProgressEventType.THINKING,
+            )
+            
             total_elapsed = time.perf_counter() - pipeline_start
 
             succeeded = [r for r in training_results if r.status == "success"]
@@ -180,6 +208,12 @@ class ModelTrainingAgent(BaseAgent):
                 f"Primary model: {state.model_selection.primary_model_name}."
             )
 
+            ProgressService.emit(
+                state.run_id,
+                "📝 Building training summary...",
+                ProgressEventType.INFO,
+            )
+
             output = ModelTrainingOutput(
                 training_status=training_status,  # type: ignore[arg-type]
                 trained_models=trained_records,
@@ -196,6 +230,12 @@ class ModelTrainingAgent(BaseAgent):
 
             state.completed_steps.append("Model Training")
 
+            ProgressService.emit(
+                            state.run_id,
+                            "💾 Saving trained model metadata...",
+                            ProgressEventType.INFO,
+                        )
+            
             logger.info(
                 "ModelTrainingAgent: finished. "
                 "Status: %s | Succeeded: %d | Failed: %d | "
@@ -223,6 +263,12 @@ class ModelTrainingAgent(BaseAgent):
                     "ModelTrainingAgent: all models failed. Pipeline halting."
                 )
 
+            ProgressService.emit(
+                state.run_id,
+                "✅ Model training completed.",
+                ProgressEventType.SUCCESS,
+            )
+
             return state
 
         except Exception as e:
@@ -237,5 +283,11 @@ class ModelTrainingAgent(BaseAgent):
             )
 
             state.logs.append(f"Model training failed: {e}")
+
+            ProgressService.emit(
+                state.run_id,
+                f"❌ Model training failed: {e}",
+                ProgressEventType.ERROR,
+            )
 
             return state

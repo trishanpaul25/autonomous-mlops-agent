@@ -21,6 +21,11 @@ from server.schemas import RunDetailsResponse
 from server.schemas import PipelineRunSummary
 
 
+from sse_starlette.sse import EventSourceResponse
+from server.services.progress_manager import progress_manager
+from server.services.events import ProgressEvent
+from server.services.progress_types import ProgressEventType
+
 router = APIRouter(
     prefix="/runs",
     tags=["Pipeline Runs"],
@@ -87,3 +92,33 @@ def get_pipeline_run(
         registry=registry_repository.get_by_run_id(run_id),
         deployment=deployment_repository.get_by_run_id(run_id),
     )
+
+
+@router.get("/{run_id}/events")
+async def stream_run_events(run_id: str):
+
+    async def event_generator():
+        try:
+            async for event in progress_manager.subscribe(run_id):
+                yield {
+                    "event": event.type.value,
+                    "data": event.model_dump_json(),
+                }
+        finally:
+            progress_manager.cleanup(run_id)
+
+    return EventSourceResponse(event_generator())
+
+
+"""@router.post("/test-stream/{run_id}")
+async def test_stream(run_id: str):
+
+    await progress_manager.publish(
+        ProgressEvent(
+            run_id=run_id,
+            type=ProgressEventType.INFO,
+            message="Hello from backend!"
+        )
+    )
+
+    return {"status": "sent"}"""

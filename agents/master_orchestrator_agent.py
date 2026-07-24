@@ -21,6 +21,10 @@ from server.core.constants import PipelineStatus
 from state.pipeline_state import PipelineState
 from utils.logger import logger
 
+from server.services.progress_service import ProgressService
+from server.services.progress_messages import PROGRESS_MESSAGES
+from server.services.progress_types import ProgressEventType
+
 
 class MasterOrchestratorAgent(BaseAgent):
 
@@ -68,6 +72,13 @@ class MasterOrchestratorAgent(BaseAgent):
         for agent_name in self.execution_order:
             agent = self.agents[agent_name]
             logger.info("Dispatching agent: %s", agent_name)
+
+            ProgressService.emit(
+                state.run_id,
+                PROGRESS_MESSAGES[agent_name],
+                ProgressEventType.STEP,
+            )
+            
             state = agent.run(state)
 
             if state.status == PipelineStatus.FAILED:
@@ -77,6 +88,13 @@ class MasterOrchestratorAgent(BaseAgent):
                     agent_name, state.error,
                 )
                 state.logs.append(f"Pipeline stopped at {agent_name}.")
+
+                ProgressService.emit(
+                    state.run_id,
+                    f"❌ Pipeline failed in {agent_name}",
+                    ProgressEventType.ERROR,
+                )
+
                 return state
 
             if state.status == PipelineStatus.WAITING_FOR_USER:
@@ -149,6 +167,12 @@ class MasterOrchestratorAgent(BaseAgent):
                         state.deployment.model_uri,
                         state.deployment.endpoint,
                     )
+
+        ProgressService.emit(
+            state.run_id,
+            "🎉 Pipeline completed successfully!",
+            ProgressEventType.COMPLETE,
+        )
 
         state.status = PipelineStatus.SUCCESS
 

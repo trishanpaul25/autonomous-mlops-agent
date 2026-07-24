@@ -25,6 +25,10 @@ from server.repositories.dataset_snapshot_repository import DatasetSnapshotRepos
 from tools.monitoring.dataset_snapshot_builder import DatasetSnapshotBuilder
 from utils.logger import logger
 
+
+from server.services.progress_service import ProgressService
+from server.services.progress_types import ProgressEventType
+
 class OrchestrationService:
     """
     Service responsible for executing the LangGraph workflow.
@@ -33,6 +37,14 @@ class OrchestrationService:
     def run(self, state: PipelineState) -> PipelineState:
         #pipeline started
         state.status = PipelineStatus.RUNNING
+
+        ProgressService.emit(
+            state.run_id,
+            "🚀 Starting Autonomous MLOps Pipeline...",
+            ProgressEventType.INFO,
+        )
+
+        
         start = time.perf_counter()
 
         db: Session = SessionLocal()
@@ -77,6 +89,12 @@ class OrchestrationService:
 
                 pipeline_run_repository.update(pipeline_run)
 
+                ProgressService.emit(
+                    state.run_id,
+                    f"❌ Pipeline execution failed: {exc}",
+                    ProgressEventType.ERROR,
+                )
+                
                 raise
 
             finally:
@@ -210,6 +228,12 @@ class OrchestrationService:
 
             db.close()
 
+            ProgressService.emit(
+                result.run_id,
+                "🎉 All pipeline artifacts saved successfully.",
+                ProgressEventType.COMPLETE,
+            )
+            
             return result
         
         finally:
