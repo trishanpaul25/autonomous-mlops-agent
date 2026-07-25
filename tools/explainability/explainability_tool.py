@@ -157,13 +157,20 @@ def compute_shap(
     values_matrix = _normalize_shap_output(raw_values)
     values_matrix = to_jsonable(values_matrix)
 
-    expected_value = getattr(explainer, "expected_value", None)
-    if isinstance(expected_value, (list, tuple)):
-        expected_value_list = [float(v) for v in to_jsonable(expected_value)]
-    elif expected_value is None:
+    expected_value = to_jsonable(getattr(explainer, "expected_value", None))
+
+    if expected_value is None:
         expected_value_list = []
+
+    elif isinstance(expected_value, (list, tuple)):
+    # Flatten nested lists if SHAP returns [[...]]
+        if expected_value and isinstance(expected_value[0], (list, tuple)):
+            expected_value = expected_value[0]
+
+        expected_value_list = [float(v) for v in expected_value]
+
     else:
-        expected_value_list = [float(to_jsonable(expected_value))]
+        expected_value_list = [float(expected_value)]
 
     mean_abs_importance = _mean_abs_importance(values_matrix, feature_names)
 
