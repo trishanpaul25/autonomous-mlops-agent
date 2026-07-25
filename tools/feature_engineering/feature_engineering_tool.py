@@ -109,6 +109,47 @@ class FeatureEngineeringTool(BaseTool):
 
         target_column = state.validation.target_column
 
+        # ------------------------------------------------------------
+        # ATOMICITY GUARD — reset every fitted artifact before this
+        # call's config is applied.
+        #
+        # execute() can legitimately run more than once against the
+        # SAME FeatureEngineeringState instance (e.g. the orchestrator
+        # restarts from the top of execution_order after ANY
+        # WAITING_FOR_USER pause — validation, dataset_resolver,
+        # feature_engineering, or model_selection clarification — which
+        # re-invokes FeatureEngineeringAgent and therefore this method a
+        # second time on the same state). Each fitted-artifact field
+        # below is only *conditionally* repopulated further down,
+        # depending on THIS call's config flags (encode_categorical,
+        # scale_numerical, handle_missing_values, handle_outliers). If
+        # those fields aren't cleared first, a second call whose config
+        # skips a step (e.g. scale_numerical=False this time) leaves the
+        # PREVIOUS call's fitted_scaler/scaled_columns attached, while
+        # fe_state.config below is overwritten with THIS call's config.
+        # The result is a fe_state that is not one consistent fit
+        # snapshot: config says one thing, the fitted objects reflect
+        # an earlier, different config. FeatureTransformReplay faithfully
+        # replays whatever it's handed, so this corruption then shows up
+        # at inference time as "columns missing before scaling" — it is
+        # not a replay bug, it is a stale-state bug upstream of replay.
+        # ------------------------------------------------------------
+        fe_state.dropped_columns = []
+        fe_state.imputed_columns = {}
+        fe_state.encoded_columns = {}
+        fe_state.scaled_columns = []
+        fe_state.outlier_treated_columns = []
+        fe_state.outlier_method = None
+        fe_state.derived_features = []
+        fe_state.transformations_applied = []
+        fe_state.warnings = []
+        fe_state.fitted_imputation_values = {}
+        fe_state.fitted_outlier_bounds = {}
+        fe_state.fitted_onehot_encoder = None
+        fe_state.onehot_encoded_columns = []
+        fe_state.fitted_label_encoding_maps = {}
+        fe_state.fitted_scaler = None
+
         fe_state.config = config.model_dump()
 
         rows_before = len(df)

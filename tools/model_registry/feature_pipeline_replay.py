@@ -26,6 +26,7 @@ instead of two hand-written copies that could drift apart.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 import pandas as pd
@@ -35,6 +36,20 @@ from tools.feature_engineering.feature_engineering_tool import FeatureEngineerin
 
 if TYPE_CHECKING:
     from state.feature_engineering_state import FeatureEngineeringState
+
+logger = logging.getLogger(__name__)
+
+
+class FeatureReplayError(ValueError):
+    """
+    Raised when a replay stage produces a column set that doesn't match
+    what the fitted artifacts (encoder/scaler) expect.
+
+    Distinguished from a plain sklearn "feature names should match"
+    error so the real cause — fe_state being an inconsistent snapshot —
+    is surfaced directly instead of being masked by a downstream sklearn
+    stack trace.
+    """
 
 
 class FeatureTransformReplay:
@@ -79,6 +94,7 @@ class FeatureTransformReplay:
             filled with 0 rather than raising).
         """
         df = df.copy()
+        logger.info("[Replay] Raw input columns: %s", list(df.columns))
 
         # 1. Derived features — row-wise, reuses FeatureEngineeringTool's
         #    own derivation logic so there's exactly one implementation.
@@ -86,9 +102,15 @@ class FeatureTransformReplay:
             try:
                 new_col = FeatureEngineeringTool._apply_derivation(df, spec)
             except Exception:
+                logger.warning(
+                    "[Replay] Derivation for '%s' raised and was skipped — "
+                    "this silently produces a missing column downstream.",
+                    spec.new_column,
+                )
                 continue
             if new_col is not None:
                 df[spec.new_column] = new_col
+        logger.info("[Replay] After feature generation: %s", list(df.columns))
 
         # 2. Drop columns
         drop_cols = [
@@ -97,11 +119,16 @@ class FeatureTransformReplay:
         ]
         if drop_cols:
             df = df.drop(columns=drop_cols)
+        logger.info(
+            "[Replay] After drop (drop_columns=%s): %s",
+            self.drop_columns, list(df.columns),
+        )
 
         # 3. Impute (transform-only — using fit-time fill values)
         for col, fill_value in self.fe_state.fitted_imputation_values.items():
             if col in df.columns:
                 df[col] = df[col].fillna(fill_value)
+        logger.info("[Replay] After missing value handling: %s", list(df.columns))
 
         # 4. Outlier clipping (transform-only — using fit-time bounds)
         for col, bounds in self.fe_state.fitted_outlier_bounds.items():
@@ -135,17 +162,49 @@ class FeatureTransformReplay:
                 df[col] = (
                     df[col].astype(str).map(lookup).fillna(unseen_code).astype(int)
                 )
+        logger.info("[Replay] After encoding: %s", list(df.columns))
 
         # 6. Scale (transform-only)
         if self.fe_state.fitted_scaler is not None:
-            numeric_cols = [c for c in self.fe_state.scaled_columns if c in df.columns]
-            if numeric_cols:
-                df[numeric_cols] = self.fe_state.fitted_scaler.transform(df[numeric_cols])
+            logger.info(
+                "[Replay] Before scaling — fe_state.scaled_columns=%s, "
+                "columns present=%s",
+                self.fe_state.scaled_columns, list(df.columns),
+            )
+            missing = [c for c in self.fe_state.scaled_columns if c not in df.columns]
+            if missing:
+                # FAIL FAST with the real diagnosis instead of silently
+                # subsetting to the intersection and letting sklearn
+                # raise its generic "feature names should match" error
+                # a step later. A silent intersection here would let a
+                # corrupted fe_state (config out of sync with the
+                # fitted scaler/scaled_columns) produce a prediction
+                # anyway — quietly, on fewer features than the model was
+                # trained on. That's worse than failing loudly: it
+                # degrades prediction quality without telling anyone.
+                raise FeatureReplayError(
+                    "Replay produced a different column set than the "
+                    "fitted scaler expects. Missing before scaling: "
+                    f"{missing}. Columns actually present at this stage: "
+                    f"{list(df.columns)}. This means fe_state.config does "
+                    "not match fe_state.scaled_columns / fitted_scaler for "
+                    "this deployment — check how/when FeatureEngineeringState "
+                    "was populated relative to when this model was "
+                    "registered (e.g. was execute() invoked more than once "
+                    "against the same state with a different config?)."
+                )
+            numeric_cols = self.fe_state.scaled_columns
+            df[numeric_cols] = self.fe_state.fitted_scaler.transform(df[numeric_cols])
+        logger.info("[Replay] After scaling: %s", list(df.columns))
 
         # 7. Align to the exact training-time feature column set/order.
         #    Any column the fitted pipeline expects but this batch never
         #    produced (e.g. a rare one-hot category) is filled with 0.
         final_cols = self.fe_state.final_feature_columns
+        logger.info(
+            "[Replay] Before final reindex — target columns=%s, have=%s",
+            final_cols, list(df.columns),
+        )
         df = df.reindex(columns=final_cols, fill_value=0)
 
         return df

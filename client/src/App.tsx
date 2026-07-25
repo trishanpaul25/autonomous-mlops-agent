@@ -7,12 +7,15 @@ import { Dashboard } from "./pages/Dashboard/Dashboard";
 import { DatasetUpload } from "./pages/DatasetUpload/DatasetUpload";
 import { Deployments } from "./pages/Deployments/Deployments";
 import { DeploymentDetail } from "./pages/Deployments/DeploymentDetail";
+import HeroSection from "./components/HeroSection";
 
 export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          <Route path="/" element={<HeroSection />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -52,8 +55,7 @@ export function App() {
             }
           />
 
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -1,3 +1,4 @@
+@import "tailwindcss";
 :root {
   /* Brand Colors */
   --color-primary: #fffdf2;

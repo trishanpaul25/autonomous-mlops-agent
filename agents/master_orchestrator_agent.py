@@ -62,6 +62,24 @@ class MasterOrchestratorAgent(BaseAgent):
             "explainability", "model_registry", "deployment",
         ]
 
+        # Maps each execution_order key to the label that agent appends
+        # to state.completed_steps once it finishes successfully. Used
+        # on resume (see run()) to avoid re-executing a step that
+        # already completed in an earlier pass through this loop.
+        self._completed_step_labels = {
+            "dataset_resolver": "Dataset Resolver",
+            "data_ingestion": "Data Ingestion",
+            "validation": "Validation",
+            "feature_engineering": "Feature Engineering",
+            "model_selection": "Model Selection",
+            "model_training": "Model Training",
+            "hyperparameter_optimization": "Hyperparameter Optimization",
+            "model_evaluation": "Model Evaluation",
+            "explainability": "explainability",
+            "model_registry": "Model Registry",
+            "deployment": "Deployment",
+        }
+
     def run(self, state: PipelineState) -> PipelineState:
         state.current_agent = "MasterOrchestrator"
 
@@ -70,6 +88,23 @@ class MasterOrchestratorAgent(BaseAgent):
         logger.info("Pipeline started. Execution order: %s", self.execution_order)
 
         for agent_name in self.execution_order:
+            # RESUME GUARD: if this run() call is a resume after an
+            # earlier WAITING_FOR_USER pause, state.completed_steps
+            # already records every step that finished successfully in
+            # the prior pass. Without this check, run() always restarts
+            # from "dataset_resolver", which would call agent.run(state)
+            # again for steps like feature_engineering that already
+            # completed — re-invoking the LLM planner, potentially
+            # producing a different config, and mutating an
+            # already-fitted FeatureEngineeringState a second time.
+            label = self._completed_step_labels.get(agent_name)
+            if label is not None and label in state.completed_steps:
+                logger.info(
+                    "Skipping agent '%s' — already completed in a prior pass "
+                    "(resume after WAITING_FOR_USER).", agent_name,
+                )
+                continue
+
             agent = self.agents[agent_name]
             logger.info("Dispatching agent: %s", agent_name)
 

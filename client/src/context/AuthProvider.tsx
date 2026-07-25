@@ -1,6 +1,6 @@
 // src/context/AuthProvider.tsx
 import { useState, useEffect, useCallback, type ReactNode } from "react";
-
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "./AuthContext";
 import { authApi } from "../api/authAPI";
 import { tokenStorage, registerUnauthorizedHandler } from "../api/axios";
@@ -17,6 +17,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const navigate = useNavigate();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,8 +25,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(() => {
     tokenStorage.clear();
     setUser(null);
-  }, []);
-
+    navigate("/", { replace: true });
+  }, [navigate]);
   useEffect(() => {
     const bootstrap = async () => {
       const token = tokenStorage.get();
@@ -50,11 +51,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   useEffect(() => {
-    registerUnauthorizedHandler(() => {
-      tokenStorage.clear();
-      setUser(null);
-    });
-  }, []);
+    registerUnauthorizedHandler(logout);
+  }, [logout]);
 
   const login = useCallback(async (payload: LoginPayload) => {
     const tokenRes = await authApi.login(payload);

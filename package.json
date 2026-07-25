@@ -24,5 +24,8 @@
   },
   "devDependencies": {
     "concurrently": "^10.0.4"
+  },
+  "dependencies": {
+    "sonner": "^2.0.7"
   }
 }
