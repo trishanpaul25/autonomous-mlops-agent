@@ -12,12 +12,17 @@ export const tokenStorage = {
   clear: (): void => localStorage.removeItem(TOKEN_KEY),
 };
 
+// No default "Content-Type: application/json" header here on purpose.
+// Axios already sets that automatically for plain-object JSON request
+// bodies. Forcing it as an instance-level default instead means every
+// non-JSON request (e.g. chatApi.ts's multipart/form-data upload) has to
+// remember to override/clear it or the browser can't attach the
+// multipart boundary — which is exactly what caused a 422 on /chat/
+// twice already. Leaving it unset is safer than relying on every call
+// site to opt back out.
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Attach bearer token automatically
