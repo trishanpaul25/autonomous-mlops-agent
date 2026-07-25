@@ -58,6 +58,7 @@ class DeploymentRepository:
             .order_by(Deployment.deployed_at.desc())
             .first()
         )
+<<<<<<< HEAD
 
     def get_by_user_id(self, user_id: UUID) -> list[Deployment]:
         """
@@ -75,6 +76,8 @@ class DeploymentRepository:
             .order_by(Deployment.deployed_at.desc())
             .all()
         )
+=======
+>>>>>>> 55c7b9dbe5a6468b75384fcd03a1a927ab39da77
 
     def update(self) -> None:
         self.db.commit()
