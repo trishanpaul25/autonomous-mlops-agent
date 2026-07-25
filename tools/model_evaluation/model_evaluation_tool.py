@@ -77,6 +77,7 @@ class ModelEvaluationTool(BaseTool):
         ev.best_model_name = output.best_model_name
         ev.best_model_identifier = output.best_model_identifier
         ev.best_model_metrics = output.best_model_metrics
+        state.metrics = dict(output.best_model_metrics)
         ev.total_execution_time_seconds = output.total_execution_time_seconds
         ev.errors = output.errors
         ev.comparison_table = output.comparison_table
