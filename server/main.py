@@ -28,10 +28,18 @@ app = FastAPI(
   lifespan=lifespan
 )
 from fastapi.middleware.cors import CORSMiddleware
+import os
+
+# Local dev origin is always allowed. In production, set ALLOWED_ORIGINS
+# on Render to a comma-separated list, e.g.
+# ALLOWED_ORIGINS=https://your-app.vercel.app,https://your-custom-domain.com
+_default_origins = ["http://localhost:5173"]
+_env_origins = os.getenv("ALLOWED_ORIGINS", "")
+allow_origins = _default_origins + [o.strip() for o in _env_origins.split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # your Vite dev server
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
