@@ -1,0 +1,28 @@
+{
+  "name": "autonomous-mlops-agent",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/trishanpaul25/autonomous-mlops-agent#readme",
+  "bugs": {
+    "url": "https://github.com/trishanpaul25/autonomous-mlops-agent/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trishanpaul25/autonomous-mlops-agent.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run client\" \"npm run server\"",
+    "client": "npm run dev --prefix client",
+    "server": "uvicorn server.main:app --reload",
+    "build": "npm run build --prefix client",
+    "lint": "npm run lint --prefix client",
+    "preview": "npm run preview --prefix client"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

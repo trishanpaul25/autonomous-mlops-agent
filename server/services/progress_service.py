@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from uuid import UUID
 
@@ -25,10 +24,9 @@ class ProgressService:
         )
 
         try:
-            loop = asyncio.get_running_loop()
-            loop.create_task(progress_manager.publish(event))
-        except RuntimeError:
-            try:
-                asyncio.run(progress_manager.publish(event))
-            except Exception:
-                logger.exception("Failed to publish progress event")
+            # Thread-safe: works whether this is called from the main
+            # event loop or from the worker thread the pipeline runs on
+            # (via run_in_threadpool in the /chat route).
+            progress_manager.publish_threadsafe(event)
+        except Exception:
+            logger.exception("Failed to publish progress event")

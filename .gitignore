@@ -12,11 +12,31 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.so
 
 # ==========================================
 # Environment Variables
 # ==========================================
 .env
+.env.*
+!.env.example
+
+# ==========================================
+# Node.js
+# ==========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Build Output
+# ==========================================
+dist/
+build/
+.vite/
+*.tsbuildinfo
 
 # ==========================================
 # IDE
@@ -46,6 +66,11 @@ artifacts/
 # MLflow
 # ==========================================
 mlruns/
+mlartifacts/
+mlflow.db
+mlruns*.db
+*-shm
+*-wal
 
 # ==========================================
 # DVC
@@ -56,19 +81,23 @@ mlruns/
 # Models
 # ==========================================
 *.pkl
+*.pickle
 *.joblib
 *.onnx
 *.h5
 *.keras
 *.pt
 *.pth
+*.ckpt
 
 # ==========================================
 # Testing
 # ==========================================
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+.cache/
 
 # ==========================================
 # Jupyter
@@ -80,13 +109,18 @@ htmlcov/
 # ==========================================
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # ==========================================
-# MLflow
+# Temporary Files
 # ==========================================
-mlruns/
-mlartifacts/
-mlflow.db
-mlruns*.db
-*-shm
-*-wal
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# ==========================================
+# Coverage
+# ==========================================
+coverage/

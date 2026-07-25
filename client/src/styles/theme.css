@@ -1,0 +1,80 @@
+:root {
+  /* Brand Colors */
+  --color-primary: #fffdf2;
+  --color-secondary: #1c1c1c;
+
+  /* Surfaces */
+  --color-bg: var(--color-primary);
+  --color-surface: #ffffff;
+  --color-surface-raised: #f8f7ef;
+  --color-border: #d9d9d9;
+  --color-border-focus: #1c1c1c;
+
+  /* Text */
+  --color-text-primary: var(--color-secondary);
+  --color-text-secondary: #5c5c5c;
+  --color-text-muted: #8c8c8c;
+
+  /* Accent */
+  --color-accent: var(--color-secondary);
+  --color-accent-hover: #000000;
+  --color-accent-soft: rgba(28, 28, 28, 0.08);
+
+  /* Status */
+  --color-success: #16a34a;
+  --color-error: #dc2626;
+  --color-error-soft: rgba(220, 38, 38, 0.1);
+  --color-warning: #d97706;
+
+  /* Typography */
+  --font-sans: "Google Sans Code", monospace;
+  --font-mono: "Google Sans Code", monospace;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Motion */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+}
+.auth-boot-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+}
+
+.auth-boot-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
