@@ -3,15 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { deploymentApi } from "../../api/deploymentApi";
 import { extractErrorMessage } from "../../api/axios";
 import type { DeploymentDetail as DeploymentDetailType } from "../../types/deployment";
+import { MetricsGrid } from "../../components/MetricsGrid";
 import "./DeploymentDetail.css";
 
 const SAMPLE_RECORD_PLACEHOLDER = `[
   { "feature_1": 0, "feature_2": "value" }
 ]`;
-
-function formatMetric(value: number | null): string {
-  return value === null ? "—" : `${(value * 100).toFixed(1)}%`;
-}
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -154,6 +151,9 @@ export function DeploymentDetail() {
               {deployment.dataset_name
                 ? `Trained on ${deployment.dataset_name}`
                 : "Dataset unavailable"}
+              {deployment.target_column && (
+                <> · Predicting <strong>{deployment.target_column}</strong></>
+              )}
             </p>
           </div>
           <span
@@ -182,31 +182,13 @@ export function DeploymentDetail() {
           </button>
         </div>
 
+        <MetricsGrid
+          problemType={deployment.problem_type}
+          metrics={deployment.metrics}
+          variant="detail"
+        />
+
         <div className="deployment-detail-grid">
-          <div className="deployment-detail-card">
-            <span className="deployment-detail-label">Accuracy</span>
-            <span className="deployment-detail-value">
-              {formatMetric(deployment.accuracy)}
-            </span>
-          </div>
-          <div className="deployment-detail-card">
-            <span className="deployment-detail-label">F1</span>
-            <span className="deployment-detail-value">
-              {formatMetric(deployment.f1_score)}
-            </span>
-          </div>
-          <div className="deployment-detail-card">
-            <span className="deployment-detail-label">Precision</span>
-            <span className="deployment-detail-value">
-              {formatMetric(deployment.precision)}
-            </span>
-          </div>
-          <div className="deployment-detail-card">
-            <span className="deployment-detail-label">Recall</span>
-            <span className="deployment-detail-value">
-              {formatMetric(deployment.recall)}
-            </span>
-          </div>
           <div className="deployment-detail-card">
             <span className="deployment-detail-label">Status</span>
             <span className="deployment-detail-value">

@@ -1,9 +1,9 @@
 from sqlalchemy import Column
-from sqlalchemy import Float
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy import TIMESTAMP
 from sqlalchemy import ForeignKey
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql  import func
 from uuid import uuid4
 from sqlalchemy.dialects.postgresql import UUID
@@ -32,12 +32,13 @@ class TrainedModel(Base):
 
     model_path = Column(Text)
 
-    accuracy = Column(Float)
+    problem_type = Column(String)
 
-    precision = Column(Float)
+    target_column = Column(String)
 
-    recall = Column(Float)
-
-    f1_score = Column(Float)
+    # {"accuracy": .., "f1": ..} for classification,
+    # {"r2": .., "mae": ..} for regression — whatever
+    # MetricsCalculator produced for this model.
+    metrics = Column(JSONB)
 
     created_at = Column(TIMESTAMP, server_default=func.now(),)

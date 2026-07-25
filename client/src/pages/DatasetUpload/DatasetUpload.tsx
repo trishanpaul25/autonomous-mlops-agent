@@ -3,6 +3,7 @@ import { chatApi } from "../../api/chatApi";
 import { usePipelineProgress } from "../../hooks/usePipelineProgress";
 import { extractErrorMessage } from "../../api/axios";
 import type { ChatResponse } from "../../types/pipeline";
+import { MetricsGrid } from "../../components/MetricsGrid";
 import "./DatasetUpload.css";
 
 const ACCEPTED_EXTENSIONS = ".csv,.xlsx,.xls,.json,.zip";
@@ -195,7 +196,24 @@ export function DatasetUpload() {
                   {result.model_evaluation?.best_model_name ?? "—"}
                 </span>
               </div>
+              <div className="result-card">
+                <span className="result-label">Target Column</span>
+                <span className="result-value">
+                  {result.target_column ?? "—"}
+                </span>
+              </div>
             </div>
+
+            {result.model_evaluation?.best_model_metrics && (
+              <div className="result-metrics">
+                <h3>Best Model Metrics</h3>
+                <MetricsGrid
+                  problemType={result.problem_type}
+                  metrics={result.model_evaluation.best_model_metrics}
+                  variant="compact"
+                />
+              </div>
+            )}
 
             {result.completed_steps.length > 0 && (
               <div className="result-steps">

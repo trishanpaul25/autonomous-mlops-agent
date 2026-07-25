@@ -3,11 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { deploymentApi } from "../../api/deploymentApi";
 import { extractErrorMessage } from "../../api/axios";
 import type { DeploymentSummary } from "../../types/deployment";
+import { MetricsGrid } from "../../components/MetricsGrid";
 import "./Deployments.css";
-
-function formatMetric(value: number | null): string {
-  return value === null ? "—" : `${(value * 100).toFixed(1)}%`;
-}
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -124,32 +121,11 @@ export function Deployments() {
 
                 <CopyableId id={deployment.deployment_id} />
 
-                <div className="deployment-metrics">
-                  <div className="deployment-metric">
-                    <span className="deployment-metric-value">
-                      {formatMetric(deployment.accuracy)}
-                    </span>
-                    <span className="deployment-metric-label">Accuracy</span>
-                  </div>
-                  <div className="deployment-metric">
-                    <span className="deployment-metric-value">
-                      {formatMetric(deployment.f1_score)}
-                    </span>
-                    <span className="deployment-metric-label">F1</span>
-                  </div>
-                  <div className="deployment-metric">
-                    <span className="deployment-metric-value">
-                      {formatMetric(deployment.precision)}
-                    </span>
-                    <span className="deployment-metric-label">Precision</span>
-                  </div>
-                  <div className="deployment-metric">
-                    <span className="deployment-metric-value">
-                      {formatMetric(deployment.recall)}
-                    </span>
-                    <span className="deployment-metric-label">Recall</span>
-                  </div>
-                </div>
+                <MetricsGrid
+                  problemType={deployment.problem_type}
+                  metrics={deployment.metrics}
+                  variant="compact"
+                />
 
                 <div className="deployment-card-footer">
                   <div className="deployment-meta">

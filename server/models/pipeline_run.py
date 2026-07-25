@@ -36,6 +36,10 @@ class PipelineRun(Base):
 
     status = Column(String)
 
+    problem_type = Column(String)
+
+    target_column = Column(String)
+
     started_at = Column(TIMESTAMP)
 
     completed_at = Column(TIMESTAMP)

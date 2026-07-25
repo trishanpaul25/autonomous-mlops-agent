@@ -16,10 +16,12 @@ export interface DeploymentSummary {
   // been reloaded since a restart.
   is_active: boolean;
 
-  accuracy: number | null;
-  precision: number | null;
-  recall: number | null;
-  f1_score: number | null;
+  problem_type: string | null;
+  target_column: string | null;
+  // Generic metrics bag — {"accuracy": .., "f1": ..} for classification,
+  // {"r2": .., "mae": ..} for regression. Replaces the old fixed
+  // accuracy/precision/recall/f1_score columns; see MetricsGrid.
+  metrics: Record<string, number | null>;
 
   endpoint: string | null;
   deployed_at: string | null;

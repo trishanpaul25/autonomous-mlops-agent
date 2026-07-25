@@ -1,0 +1,36 @@
+.metrics-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.metrics-grid-detail {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.metrics-grid-compact {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.metrics-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--surface-muted, #f8f9fb);
+}
+
+.metrics-tile-primary {
+  background: var(--surface-accent, #eef2ff);
+}
+
+.metrics-tile-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.metrics-tile-label {
+  font-size: 0.75rem;
+  color: var(--text-muted, #6b7280);
+}

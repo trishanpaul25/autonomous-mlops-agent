@@ -109,6 +109,8 @@ class OrchestrationService:
             pipeline_run.completed_at = result.completed_at
             pipeline_run.execution_time = result.execution_time
             pipeline_run.assistant_message = result.assistant_message
+            pipeline_run.problem_type = result.validation.problem_type
+            pipeline_run.target_column = result.validation.target_column
 
             pipeline_run_repository.update(pipeline_run)
 
@@ -127,15 +129,26 @@ class OrchestrationService:
                     {},
                 )
 
+                # `metrics` here is comparison_table's per-model entry — its
+                # own model_name/model_identifier keys aside, the rest is
+                # exactly whatever MetricsCalculator computed for this
+                # problem_type (accuracy/f1/... or r2/mae/...). Store it
+                # as-is rather than picking out fixed classification keys,
+                # so regression runs don't silently save all-NULL metrics.
+                model_metrics = {
+                    k: v
+                    for k, v in metrics.items()
+                    if k not in ("model_name", "model_identifier")
+                }
+
                 trained_models.append(
                     TrainedModel(
                         run_id=result.run_id,
                         model_name=trained["model_name"],
                         model_path=trained["model_identifier"],
-                        accuracy=metrics.get("accuracy"),
-                        precision=metrics.get("precision"),
-                        recall=metrics.get("recall"),
-                        f1_score=metrics.get("f1"),
+                        problem_type=result.validation.problem_type,
+                        target_column=result.validation.target_column,
+                        metrics=model_metrics,
                     )
                 )
 

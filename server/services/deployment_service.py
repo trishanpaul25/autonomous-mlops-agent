@@ -74,10 +74,9 @@ class DeploymentService:
             dataset_name=dataset.dataset_name if dataset else None,
             status=deployment.status,
             is_active=ModelServerRegistry.is_registered(deployment_id),
-            accuracy=trained_model.accuracy if trained_model else None,
-            precision=trained_model.precision if trained_model else None,
-            recall=trained_model.recall if trained_model else None,
-            f1_score=trained_model.f1_score if trained_model else None,
+            problem_type=trained_model.problem_type if trained_model else None,
+            target_column=trained_model.target_column if trained_model else None,
+            metrics=(trained_model.metrics if trained_model else None) or {},
             endpoint=deployment.endpoint,
             deployed_at=deployment.deployed_at,
         )

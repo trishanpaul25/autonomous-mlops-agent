@@ -64,10 +64,9 @@ class DeploymentSummary(BaseModel):
     # one on startup.
     is_active: bool
 
-    accuracy: float | None
-    precision: float | None
-    recall: float | None
-    f1_score: float | None
+    problem_type: str | None
+    target_column: str | None
+    metrics: dict[str, float | None]
 
     endpoint: str | None
     deployed_at: datetime | None
