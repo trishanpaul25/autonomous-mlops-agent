@@ -18,17 +18,12 @@ interface UsePipelineProgressResult {
  * Subscribes to GET /runs/{run_id}/events (Server-Sent Events) for live
  * pipeline progress.
  *
- * IMPORTANT — this is currently a dead end in practice: `run_id` is
- * generated server-side inside the POST /chat handler and only reaches the
- * client in the final ChatResponse, by which point the run is already
- * over. There is no point in the current flow where we have a `runId`
- * *and* the pipeline is still in progress, so `enabled` should stay false
- * until the backend either (a) accepts a client-generated run_id on
- * /chat, or (b) exposes a separate "start run" endpoint that returns
- * run_id immediately and runs the pipeline in the background.
- *
- * Wired up now, disabled by default, so flipping it on later is a
- * one-line change in DatasetUpload.tsx rather than new plumbing.
+ * Callers pass a client-generated run_id (crypto.randomUUID()) alongside
+ * that same run_id in the POST /chat form data, and set `enabled` true as
+ * soon as the request is fired — see DatasetUpload.tsx. The backend now
+ * runs the pipeline in a worker thread (server/api/routes/chat.py), so
+ * this stream can deliver events concurrently while /chat is still
+ * in flight, rather than only after it resolves.
  */
 export function usePipelineProgress({
   runId,
@@ -56,7 +51,14 @@ export function usePipelineProgress({
     const source = new EventSource(url.toString());
     sourceRef.current = source;
 
-    source.onopen = () => setIsConnected(true);
+    source.onopen = () => {
+      // Clear the previous run's log here, inside the callback that fires
+      // once the connection is actually live — not synchronously in the
+      // effect body. onopen always fires before any message event per the
+      // SSE spec, so this can't race with handleEvent below.
+      setEvents([]);
+      setIsConnected(true);
+    };
 
     source.onerror = () => {
       setIsConnected(false);

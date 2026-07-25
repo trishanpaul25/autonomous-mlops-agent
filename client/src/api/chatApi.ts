@@ -4,25 +4,36 @@ import type { ChatResponse } from "../types/pipeline";
 export interface RunPipelinePayload {
   prompt: string;
   file?: File | null;
+  /**
+   * Generate this client-side (crypto.randomUUID()) and pass it in so you
+   * can open the SSE stream at /runs/{runId}/events *before* calling this,
+   * instead of only finding out the run_id once the whole pipeline is done.
+   */
+  runId?: string;
 }
 
 export const chatApi = {
   /**
    * POST /chat
-   * multipart/form-data: `prompt` (Form field, required) + `file` (optional).
+   * multipart/form-data: `prompt` (required), `file` (optional),
+   * `run_id` (optional — server generates one if omitted).
    *
-   * This is a BLOCKING call on the backend — it runs the full LangGraph
-   * pipeline (ingestion through deployment) inside the request handler and
-   * only responds once everything finishes. No axios timeout is set here
-   * deliberately; a long-running training job hitting a client-side
-   * timeout would look like a network failure when the pipeline may still
-   * be succeeding server-side.
+   * This is a BLOCKING call from the caller's perspective — it doesn't
+   * resolve until the full pipeline finishes — but the backend now runs
+   * it in a worker thread, so /runs/{run_id}/events can stream progress
+   * concurrently while this promise is still pending. No axios timeout is
+   * set here deliberately; a long-running training job hitting a
+   * client-side timeout would look like a network failure when the
+   * pipeline may still be succeeding server-side.
    */
-  runPipeline: ({ prompt, file }: RunPipelinePayload) => {
+  runPipeline: ({ prompt, file, runId }: RunPipelinePayload) => {
     const form = new FormData();
     form.append("prompt", prompt);
     if (file) {
       form.append("file", file);
+    }
+    if (runId) {
+      form.append("run_id", runId);
     }
 
     // Deliberately no Content-Type header here: axios/the browser sets

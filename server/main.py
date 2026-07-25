@@ -4,6 +4,8 @@ from server.core.config import settings
 from server.core.logging import initialize_logging, get_logger
 from server.middleware import register_exception_handlers
 from contextlib import asynccontextmanager
+import asyncio
+from server.services.progress_manager import progress_manager
 """
   This ensures logging is initialized exactly once during application startup and gives you a clean place to initialize other resources later (database connections, MLflow, Redis, etc.)
 """
@@ -12,6 +14,10 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app : FastAPI):
+  # The pipeline runs in a worker thread (see server/api/routes/chat.py),
+  # so ProgressService needs a reference to *this* loop to publish SSE
+  # events back onto it safely from that thread.
+  progress_manager.bind_loop(asyncio.get_running_loop())
   logger.info(f"Starting {settings.APP_NAME} Backened")
   yield
   logger.info(f"Shutting Down {settings.APP_NAME} Backend")

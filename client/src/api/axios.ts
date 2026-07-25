@@ -53,12 +53,35 @@ apiClient.interceptors.response.use(
   },
 );
 
-// Normalizes FastAPI's { detail: "..." } error shape into a plain string.
+// Normalizes FastAPI's error shape into a plain string. `detail` is a
+// string for your own `HTTPException(detail="...")` calls, but for
+// automatic 422 validation errors FastAPI sends an ARRAY of
+// { type, loc, msg, input } objects instead — rendering that array
+// directly as JSX children crashes React ("Objects are not valid as a
+// React child"), so it has to be flattened to text here.
 export const extractErrorMessage = (error: unknown): string => {
   if (axios.isAxiosError<ApiErrorShape>(error)) {
-    return (
-      error.response?.data?.detail || error.message || "Something went wrong."
-    );
+    const detail = error.response?.data?.detail;
+
+    if (Array.isArray(detail)) {
+      return detail
+        .map((item) => {
+          if (item && typeof item === "object" && "msg" in item) {
+            const field = Array.isArray(item.loc)
+              ? item.loc[item.loc.length - 1]
+              : undefined;
+            return field ? `${field}: ${item.msg}` : String(item.msg);
+          }
+          return typeof item === "string" ? item : JSON.stringify(item);
+        })
+        .join("; ");
+    }
+
+    if (typeof detail === "string" && detail) {
+      return detail;
+    }
+
+    return error.message || "Something went wrong.";
   }
   return "Something went wrong.";
 };

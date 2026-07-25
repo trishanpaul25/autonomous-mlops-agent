@@ -38,10 +38,18 @@ export interface AuthUser {
   failed_runs: number;
 }
 
-// FastAPI's default HTTPException error shape: { "detail": "..." }
-// (auth routes raise plain HTTPException, so this is NOT the APIResponse envelope)
+// FastAPI's default HTTPException error shape: { "detail": "..." }. For
+// automatic 422 request-validation errors, `detail` is instead an array of
+// { type, loc, msg, input } objects — both are handled in extractErrorMessage.
+export interface ApiValidationErrorItem {
+  type: string;
+  loc: (string | number)[];
+  msg: string;
+  input: unknown;
+}
+
 export interface ApiErrorShape {
-  detail: string;
+  detail: string | ApiValidationErrorItem[];
 }
 
 export interface AuthContextValue {

@@ -3,6 +3,7 @@ from fastapi import File
 from fastapi import Form
 
 from fastapi import APIRouter, HTTPException, Depends
+from starlette.concurrency import run_in_threadpool
 from server.auth.dependencies import get_current_user
 from server.models.user import User
 
@@ -36,6 +37,7 @@ router = APIRouter(
 async def chat(
     prompt: str = Form(...),
     file: UploadFile | None = File(None),
+    run_id: str | None = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
     ):
@@ -53,10 +55,17 @@ async def chat(
                 detail="Dataset not found."
             )"""
 
-    state = PipelineState(
-        user_prompt=prompt,
-        user_id=str(current_user.id)
-    )
+    # If the client generated a run_id up front (so it could open the SSE
+    # progress stream before this request finishes), use it. Otherwise
+    # fall back to PipelineState's own default_factory.
+    state_kwargs = {
+        "user_prompt": prompt,
+        "user_id": str(current_user.id),
+    }
+    if run_id:
+        state_kwargs["run_id"] = run_id
+
+    state = PipelineState(**state_kwargs)
 
     """if dataset:
         state.dataset.dataset_id = dataset.id      # <-- ADD THIS
@@ -84,7 +93,12 @@ async def chat(
             "Uploaded dataset detected."
         )
 
-    result = orchestration_service.run(state)
+    # orchestration_service.run() is a long, synchronous, CPU/IO-bound call
+    # (the whole LangGraph pipeline). Calling it directly here would block
+    # this single event loop for the entire run, starving every other
+    # concurrent request — including the SSE stream at /runs/{run_id}/events
+    # that's supposed to be reporting progress *while* this is in flight.
+    result = await run_in_threadpool(orchestration_service.run, state)
 
     model_selection = None
     if result.model_selection.is_completed:

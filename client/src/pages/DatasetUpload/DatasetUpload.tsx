@@ -14,14 +14,16 @@ export function DatasetUpload() {
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ChatResponse | null>(null);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Stubbed for future real-time progress — see usePipelineProgress.ts for
-  // why `enabled` is hardcoded false today.
+  // activeRunId is generated client-side right before submit, so the SSE
+  // stream can attach while the pipeline is still running instead of only
+  // learning the run_id once /chat's response finally arrives.
   const { events: progressEvents } = usePipelineProgress({
-    runId: result?.run_id ?? null,
-    enabled: false,
+    runId: activeRunId,
+    enabled: isRunning && activeRunId !== null,
   });
 
   useEffect(() => {
@@ -59,8 +61,11 @@ export function DatasetUpload() {
     setElapsedSeconds(0);
     setIsRunning(true);
 
+    const runId = crypto.randomUUID();
+    setActiveRunId(runId);
+
     try {
-      const res = await chatApi.runPipeline({ prompt, file });
+      const res = await chatApi.runPipeline({ prompt, file, runId });
       setResult(res.data);
     } catch (err) {
       setError(extractErrorMessage(err));
