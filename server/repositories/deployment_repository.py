@@ -42,6 +42,21 @@ class DeploymentRepository:
             .filter(Deployment.run_id == run_id)
             .first()
         )
+    def get_latest_completed(self) -> Deployment | None:
+        """
+        Fetch the single most recently deployed row with status
+        "completed" — used on server startup to decide which one
+        model (of potentially many past pipeline runs) should be
+        reloaded into the in-process ModelServerRegistry. "One live
+        model at a time" demo model: whichever pipeline finished
+        deployment most recently is the one judges/users should hit.
+        """
+        return (
+            self.db.query(Deployment)
+            .filter(Deployment.status == "completed")
+            .order_by(Deployment.deployed_at.desc())
+            .first()
+        )
 
     def update(self) -> None:
         self.db.commit()
