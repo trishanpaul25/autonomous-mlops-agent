@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
-import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ProtectedLayout } from "./components/ProtectedLayout";
 import { Login } from "./pages/Login/Login";
 import { Register } from "./pages/Register/Register";
 import { Dashboard } from "./pages/Dashboard/Dashboard";
@@ -17,18 +17,18 @@ export function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedLayout>
                 <Dashboard />
-              </ProtectedRoute>
+              </ProtectedLayout>
             }
           />
 
           <Route
             path="/run"
             element={
-              <ProtectedRoute>
+              <ProtectedLayout>
                 <DatasetUpload />
-              </ProtectedRoute>
+              </ProtectedLayout>
             }
           />
 

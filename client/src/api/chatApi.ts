@@ -25,11 +25,16 @@ export const chatApi = {
       form.append("file", file);
     }
 
-    return apiClient.post<ChatResponse>("/chat", form, {
+    // Deliberately no Content-Type header here: axios/the browser sets
+    // "multipart/form-data; boundary=..." automatically for FormData
+    // bodies. Setting it manually strips the boundary and breaks the
+    // server's multipart parsing.
+    // Backend mounts this at prefix "/chat" + route "/", i.e. POST /chat/
+    // exactly. Posting to "/chat" works today because FastAPI 307-redirects
+    // it, but that's an extra round trip some proxies/environments won't
+    // follow correctly for a POST — hit the real path directly instead.
+    return apiClient.post<ChatResponse>("/chat/", form, {
       timeout: 0, // no client timeout — see note above
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
     });
   },
 };
