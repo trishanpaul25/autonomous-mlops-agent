@@ -21,6 +21,15 @@ app = FastAPI(
   version=settings.APP_VERSION,
   lifespan=lifespan
 )
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # your Vite dev server
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 #from the middleware to register all global exception handlers
 register_exception_handlers(app)
