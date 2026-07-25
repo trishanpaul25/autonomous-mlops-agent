@@ -5,6 +5,7 @@ import "./Navbar.css";
 const NAV_LINKS = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/run", label: "Run Pipeline" },
+  { to: "/deployments", label: "Deployments" },
 ];
 
 export function Navbar() {
