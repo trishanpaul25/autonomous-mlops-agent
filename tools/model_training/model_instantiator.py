@@ -18,18 +18,29 @@ Usage
 -----
     instantiator = ModelInstantiator()
     model = instantiator.instantiate("sklearn.ensemble.RandomForestClassifier")
-    # Returns a RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1)
+    # Returns a RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=_TRAIN_N_JOBS)
 """
 
 from __future__ import annotations
 import importlib
+import os
 from typing import Any
 from utils.logger import logger
+
+# Mirrors HPOptimizer's DEFAULT_N_JOBS guard (see hp_optimizer.py).
+# n_jobs=-1 spawns one worker per os.cpu_count(), which reports the HOST's
+# full core count even inside CPU-quota-limited containers (Render
+# free/starter tiers, etc). That over-spawns workers relative to the
+# container's actual entitlement and they thrash instead of parallelizing —
+# often slower than n_jobs=1. Default to 1; override with TRAIN_N_JOBS on
+# hosts with dedicated cores.
+_TRAIN_N_JOBS = int(os.getenv("TRAIN_N_JOBS", "1"))
+
 _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
     "sklearn.linear_model.LogisticRegression": {
         "random_state": 42,
         "max_iter": 1000,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
     },
     "sklearn.linear_model.RidgeClassifier": {
         "random_state": 42,
@@ -40,7 +51,7 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
     "sklearn.ensemble.RandomForestClassifier": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
     },
     "sklearn.ensemble.GradientBoostingClassifier": {
         "n_estimators": 100,
@@ -49,17 +60,17 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
     "sklearn.ensemble.ExtraTreesClassifier": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
     },
     "sklearn.svm.SVC": {
         "random_state": 42,
         "probability": True,  # enables predict_proba for downstream metrics
     },
     "sklearn.neighbors.KNeighborsClassifier": {
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
     },
     "sklearn.linear_model.LinearRegression": {
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
     },
     "sklearn.linear_model.Ridge": {
         "random_state": 42,
@@ -78,7 +89,7 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
     "sklearn.ensemble.RandomForestRegressor": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
     },
     "sklearn.ensemble.GradientBoostingRegressor": {
         "n_estimators": 100,
@@ -101,26 +112,26 @@ _DEFAULT_KWARGS: dict[str, dict[str, Any]] = {
     "xgboost.XGBClassifier": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
         "verbosity": 0,
         "eval_metric": "logloss",
     },
     "xgboost.XGBRegressor": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
         "verbosity": 0,
     },
     "lightgbm.LGBMClassifier": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
         "verbosity": -1,
     },
     "lightgbm.LGBMRegressor": {
         "n_estimators": 100,
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": _TRAIN_N_JOBS,
         "verbosity": -1,
     },
     "catboost.CatBoostClassifier": {
