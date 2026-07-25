@@ -58,6 +58,7 @@ from state.pipeline_state import PipelineState
 from tools.hyperparameter_optimization.hp_optimizer import (
     HPOptimizer,
     HPOptimizationResult,
+    DEFAULT_N_JOBS,
 )
 from tools.hyperparameter_optimization.hyperparameter_optimization_tool import (
     HyperparameterOptimizationTool,
@@ -83,7 +84,7 @@ class HyperparameterOptimizationAgent(BaseAgent):
     def __init__(
         self,
         random_state: int = 42,
-        n_jobs: int = -1,
+        n_jobs: int = DEFAULT_N_JOBS,
     ) -> None:
         """
         Parameters
@@ -91,7 +92,10 @@ class HyperparameterOptimizationAgent(BaseAgent):
         random_state : int
             Random seed for reproducibility in CV searches. Default 42.
         n_jobs : int
-            Parallel jobs for CV search. -1 uses all available CPUs.
+            Parallel jobs for CV search. Defaults to the HPO_N_JOBS env
+            var (falls back to 1) — see hp_optimizer.DEFAULT_N_JOBS for
+            why -1 is unsafe on CPU-quota-limited hosts like Render's
+            free/starter tiers.
         """
         self.scorer_selector = ScoringStrategySelector()
         self.optimizer = HPOptimizer(

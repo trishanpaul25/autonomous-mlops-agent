@@ -39,6 +39,7 @@ Error Handling Matrix
 from __future__ import annotations
 
 import importlib
+import os
 import re
 import time
 import uuid
@@ -48,6 +49,16 @@ from typing import Any, TYPE_CHECKING
 
 import numpy as np
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+
+# n_jobs=-1 tells joblib to spawn one worker process per CPU core
+# os.cpu_count() reports. In CPU-quota-limited containers (Render
+# free/starter tiers, most other PaaS free tiers) that call still reports
+# the HOST's full core count even though the container is only entitled to
+# a slice of one core — so -1 spawns far more workers than the container
+# can actually run concurrently, and they thrash for CPU instead of
+# parallelizing. Default to 1 (single-threaded, no thrashing); override
+# with HPO_N_JOBS on hosts that actually have dedicated cores available.
+DEFAULT_N_JOBS = int(os.getenv("HPO_N_JOBS", "1"))
 
 from tools.hyperparameter_optimization.hp_search_space_registry import (
     HPSearchConfig,
@@ -113,7 +124,7 @@ class HPOptimizer:
     def __init__(
         self,
         random_state: int = 42,
-        n_jobs: int = -1,
+        n_jobs: int = DEFAULT_N_JOBS,
     ) -> None:
         """
         Parameters
@@ -121,7 +132,10 @@ class HPOptimizer:
         random_state : int
             Random seed for reproducibility in CV searches. Default 42.
         n_jobs : int
-            Number of parallel jobs for CV search. -1 uses all CPUs.
+            Number of parallel jobs for CV search. Defaults to the
+            HPO_N_JOBS env var (falls back to 1). Pass -1 explicitly to
+            use all CPUs, but only on hosts with dedicated cores — see
+            DEFAULT_N_JOBS docstring above.
         """
         self.random_state = random_state
         self.n_jobs = n_jobs
